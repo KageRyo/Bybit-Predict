@@ -1,9 +1,13 @@
 # Bybit-Predict
+使用 Python 和 Bybit 交易所 API 預測加密貨幣趨  
 Predict cryptocurrency trends using Python and the Bybit exchange API
 
-
-
 ---
+這段代碼定義了一個名為 KLineStatus 的函數，它從 Bybit API 檢索和處理加密貨幣數據。該函數接受兩個參數：times 和 Name。times 是指定要檢索哪些數據的時間參數，Name 是指定要檢索數據的加密貨幣對的字符串。
+
+函數首先使用 usdt_perpetual.HTTP 函數初始化與 Bybit API 的未經身份驗證的 HTTP 會話，並將 Bybit API 端點 URL、API 密鑰和 API 秘密作為參數傳遞。然後，它調用此會話上的 query_kline 方法來請求指定的加密貨幣對的 K 線數據。interval 參數設置為 240，對應於 4 小時的時間間隔，limit 參數設置為 1，僅檢索一個數據點。from_time 參數設置為 times 參數的值，該值指定要檢索數據的時間。
+
+函數通過提取某些值並將它們附加到列表中來處理檢索的數據。例如，Open_time 列表會被附加數據中的 Open_time 值，volume 列表會被附加 volume 值，以此類推。函數還計算最後六個數據點的平均值，並將結果附加到 OP 列表中。最後，函數返回 Open_time、volume、Open、High、Low 和 Close 列表。
 
 This code define a function called KLineStatus that retrieves and processes cryptocurrency data from the Bybit API. This function takes in two arguments: times and Name. times is a time parameter that specifies which data to retrieve, and Name is a string that specifies the cryptocurrency pair to retrieve data for.
 
@@ -38,9 +42,19 @@ python -m ensurepip --upgrade
 + 1411068006 吳國維  
 + 1411068014 張健勳  
 
+This program is used for the second-year artificial intelligence programming design final report of the Department of Intelligent Production Engineering at National Taichung University of Science and Technology. The list of report presenters and developers is as follows:  
++ 1411068006 Wu,Kuo-Wei
++ 1411068014 Chang,Chien-Hsun
+ 
 ---
 
 如果您有任何問題歡迎向 CodeRyo 團隊聯繫，您可以透過以下電子郵件發送您的提問或於此 repo 發佈 issue。  
+If you have any questions, please don't hesitate to contact the CodeRyo team. You can send your questions via email or create an issue in this repo.  
 ```
 hello@coderyo.com
 ```
+
+---
+
+歡迎大家對本項目進行貢獻！如果你想發送一個 pull request，請先 fork 本項目並在本地做出你的修改。然後，在你的 fork 上發送一個 pull request，我們會審核你的修改並考慮合併到主分支。感謝你的貢獻！  
+Welcome to contribute to this project! If you want to send a pull request, please first fork the project and make your changes locally. Then, send a pull request on your fork, and we will review your changes and consider merging them into the master branch. Thank you for your contribution!  
