@@ -34,8 +34,8 @@ wallet=[]#錢包狀態資料
 money=[]#錢包資料
 wall=[]#trade()的回傳資料
 Bybit="https://api.bybit.com"
-APIK="yekJ71e0lvUVipI6U8"
-APIS="hfz4YkqzKY7CNuZk2zwph13lgMi47DFQT6Dw"
+APIK="enter your apikey"
+APIS="enter your apiskey"
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = usdt_perpetual.HTTP( #抓取USDT永續合約資料
