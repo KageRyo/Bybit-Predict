@@ -1,5 +1,5 @@
 # Bybit-Predict
-使用 Python 和 Bybit 交易所 API 預測加密貨幣趨  
+使用 Python 和 Bybit 交易所 API 預測加密貨幣趨勢  
 Predict cryptocurrency trends using Python and the Bybit exchange API
 
 ---
