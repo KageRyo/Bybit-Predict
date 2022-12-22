@@ -1,0 +1,1 @@
+{"ret_code": 0, "ret_msg": "OK", "ext_code": "", "ext_info": "", "result": [{"id": 153291369, "symbol": "BTCUSDT", "period": "240", "interval": "240", "start_at": 1669089600, "open_time": 1669089600, "volume": 17701.124, "open": 15839.5, "high": 15878.5, "low": 15620, "close": 15754.5, "turnover": 278776797.0015}], "time_now": "1671693299.508583"}

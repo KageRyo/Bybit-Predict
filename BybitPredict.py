@@ -15,36 +15,38 @@ Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的�
 
 Bybit-Predict is a cryptocurrency trend prediction robot developed by the CodeRyo team based on the BybitAPI for use on Discord. 
 This project is also used as the final report at National Taichung University of Science and Technology. 
-Open source LICENSE: GNU General Public License v2.0
+openPrice source LICENSE: GNU General Public License v2.0
 """
 
 intents=discord.Intents().all()     # 獲取所有的 Intents 對象
 intents.message_content = True      # 允許讀取消息內容
 
-KK=[] #高於平均隻多頭K線
-SS=[] #高於平均隻空頭K線
-TT=[] #紀錄多空頭與十字線
-Open_time=[] #K線Open_time資料
-volume=[] #K線volume資料
-Open=[] #K線Open資料
-High=[] #K線High資料
-Low=[] #K線Low資料
-Close=[] #K線Close資料
-Rtext=['138.2%','150%','161.8%','200%','238.2%','261.8%','300%']
-Ftext=['0%','23.6%','38.2%','50%','61.8%','78.6%','100%']
-P=[] #建議開單點位資料
-FT=[] #建議開單時間資料
-txt=[] #多空權勢資料
-OP=[] #每六根K線平均
-OPXP=[]#每根K線與前兩根K線平均差的比例的資料
-PM=[]#判斷三根K線趨勢轉換的資料
-OSdata=[]#訂單狀態資料
-wallet=[]#錢包狀態資料
-money=[]#錢包資料
-wall=[]#trade()的回傳資料
+upK = []                # 高於平均的多頭K線
+downK = []              # 高於平均的空頭K線
+trendType = []          # 紀錄多空頭與十字線
+openTime = []           # K線Open_time資料
+volume = []             # K線volume資料
+openPrice = []          # K線Open資料
+high = []               # K線High資料
+low = []                # K線Low資料
+close = []              # K線Close資料
+recommendedPosition = [] # 建議開單點位資料
+recommendedTime = []    # 建議開單時間資料
+trendPower = []         # 多空權勢資料
+averagePrice = []       # 每六根K線平均
+priceRatio = []         # 每根K線與前兩根K線平均差的比例的資料
+trendMarker = []        # 判斷三根K線趨勢轉換的資料
+orderStatus = []        # 訂單狀態資料
+walletStatus = []       # 錢包狀態資料
+wallet = []             # 錢包資料
+tradeResult = []        # trade()的回傳資料
+retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']
+fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']
+
 Bybit="https://api.bybit.com"
-APIK="enter your apikey"
-APIS="enter your apiskey"
+APIK="fNsH1Odd8nNiY3jRTy"
+APIS="9bAWJ6AJQHL9SNMCAE64b6ErxCoJzNIN5ZKd"
+
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = usdt_perpetual.HTTP( #抓取USDT永續合約資料
@@ -70,7 +72,7 @@ def KLineStatus(times,Name): #呼叫實盤K線數據
                 Kline=[]
                 for x in range(6): #擷取需要訊息
                     K = float(''.join( x for x in da.split(', ')[5+x] if x not in Del))
-                    Kline.append(K)   #Kline=[Open_time,volume,open,high,low,close]
+                    Kline.append(K)   #Kline=[openTime,volume,open,high,low,close]
                 return Kline
             except:
                 print("拆解data.json資料錯誤")
@@ -113,12 +115,12 @@ def NKLineStatus(Name):
 def savedata(Kline):#存取K線資料
     try:
         print(Kline)
-        Open_time.append(Kline[0]) 
+        openTime.append(Kline[0]) 
         volume.append(Kline[1])
-        Open.append(Kline[2])
-        High.append(Kline[3])
-        Low.append(Kline[4])
-        Close.append(Kline[5])
+        openPrice.append(Kline[2])
+        high.append(Kline[3])
+        low.append(Kline[4])
+        close.append(Kline[5])
         return 1
     except:
         print("儲存K線資料錯誤")
@@ -128,7 +130,7 @@ def PB(T): #回推K線
     try:
         x=0
         while x < T:
-            amount=abc(Open[x],High[x],Low[x],Close[x])
+            amount=abc(openPrice[x],high[x],low[x],close[x])
             if amount==1:
                 powerUP(volume[x])
             if amount==0:
@@ -142,34 +144,34 @@ def AAA(): #計算每六根K線的平均
         O=[]
         for x in volume:
             if len(O)==6:
-                OP.append(np.average(O))
+                averagePrice.append(np.average(O))
                 O.clear()
                 O.append(x)
             else:
                 O.append(x) 
-        OP.append(np.average(O))
+        averagePrice.append(np.average(O))
         O.clear()
         for x in range(0,int(len(volume)/6)):#計算每根K線與前兩根K線平均差的比例
             if x==0:
                 None
             elif x==1:
-                OPXP.append((OP[0]-OP[1])/OP[1])
+                priceRatio.append((averagePrice[0]-averagePrice[1])/averagePrice[1])
             elif x==2:
-                OPXP.append(((OP[0]+OP[1])/2-OP[2])/OP[2])
+                priceRatio.append(((averagePrice[0]+averagePrice[1])/2-averagePrice[2])/averagePrice[2])
             elif x==3:
-                OPXP.append(((OP[0]+OP[1]+OP[2])/3-OP[3])/OP[3])
+                priceRatio.append(((averagePrice[0]+averagePrice[1]+averagePrice[2])/3-averagePrice[3])/averagePrice[3])
             elif x==4:
-                OPXP.append(((OP[0]+OP[1]+OP[2]+OP[3])/4-OP[4])/OP[4])
+                priceRatio.append(((averagePrice[0]+averagePrice[1]+averagePrice[2]+averagePrice[3])/4-averagePrice[4])/averagePrice[4])
             else:
-                OPXP.append((((OP[x-1]+OP[x-2]+OP[x-3]+OP[x-4]+OP[x-5])/5)-OP[x])/OP[x])
-        for x in OPXP : #判斷趨勢轉換
+                priceRatio.append((((averagePrice[x-1]+averagePrice[x-2]+averagePrice[x-3]+averagePrice[x-4]+averagePrice[x-5])/5)-averagePrice[x])/averagePrice[x])
+        for x in priceRatio : #判斷趨勢轉換
             if x > 0 :
-                PM.append(1) #上升
+                trendMarker.append(1) #上升
             else:
-                PM.append(0) #下降
+                trendMarker.append(0) #下降
         L=0
-        for x in PM:
-            if x == PM[0]:
+        for x in trendMarker:
+            if x == trendMarker[0]:
                 L+=1
             else:
                 break
@@ -178,16 +180,16 @@ def AAA(): #計算每六根K線的平均
     except:
         print("計算六根平均K線錯誤")
 
-def Variation(Open_time,Open,Close): #計算時間線
+def Variation(openTime,openPrice,close): #計算時間線
     try:
         difference=[]
         timerange=[]
         futuretime=[]
         for x in range(42):
-            difference.append(abs(Open[x]-Close[x]))
+            difference.append(abs(openPrice[x]-close[x]))
         max =map(difference.index,hq.nlargest(2,difference))
         for x in list(max):
-            timerange.append(Open_time[x])
+            timerange.append(openTime[x])
         if timerange[0] > timerange[1]:
             MAX1=timerange[0]
         else:
@@ -199,7 +201,7 @@ def Variation(Open_time,Open,Close): #計算時間線
         for x in range(0,7):
             print(Ktime(MAX1+(int(futuretime[x]/14400)*14400)+28800),"\t",R[x],"%")
             W=Ktime(MAX1+(int(futuretime[x]/14400)*14400)+28800)
-            FT.append(W)
+            recommendedTime.append(W)
     except:
         print("計算時間線錯誤")
 
@@ -255,14 +257,14 @@ def abc(open,high,low,close): #檢測多空頭
             e=1
         if ((a==1 or e==1) and c==0):
             #print("做空")
-            TT.append("空頭")
+            trendType.append("空頭")
             return 0
         if ((b==1 or d==1) and c==0):
             #print("做多")
-            TT.append("多頭")
+            trendType.append("多頭")
             return 1
         if(c==1):
-            TT.append("十字線")
+            trendType.append("十字線")
             return None
     except:
         print("檢測多空頭錯誤")
@@ -270,16 +272,16 @@ def abc(open,high,low,close): #檢測多空頭
 def powerUP(volume): #計算多頭量能
     try:
         if volume!=None:
-            KK.append(volume)
-            print("多頭"+str(KK))
+            upK.append(volume)
+            print("多頭"+str(upK))
         if volume==None:
             t=0
             x=0
             UPtotal=0
-            if len(KK) != 0:
-                while x<len(KK):
-                    if KK[x]>=np.average(KK): #求大於KK平均得值
-                        UPtotal=UPtotal+KK[x]
+            if len(upK) != 0:
+                while x<len(upK):
+                    if upK[x]>=np.average(upK): #求大於KK平均得值
+                        UPtotal=UPtotal+upK[x]
                         t+=1
                     x+=1
                 UPaverage=UPtotal/t
@@ -295,17 +297,17 @@ def powerUP(volume): #計算多頭量能
 def powerDOWN(volume): #計算空頭量能
     try:
         if volume!=None:
-            SS.append(volume)
-            print("空頭"+str(SS))
+            downK.append(volume)
+            print("空頭"+str(downK))
         if volume==None:
             t=0
             x=0
             DOWNtotal=0
             DOWNaverage=0
-            if len(SS) != 0:
-                while x<len(SS):
-                    if SS[x]>=np.average(SS):
-                        DOWNtotal=DOWNtotal+SS[x]
+            if len(downK) != 0:
+                while x<len(downK):
+                    if downK[x]>=np.average(downK):
+                        DOWNtotal=DOWNtotal+downK[x]
                         t+=1
                     x+=1
                 DOWNaverage=DOWNtotal/t
@@ -322,31 +324,31 @@ def Compare(UP,DOWN): #比較多空權勢
     try:
         if UP > ((DOWN*0.2)+DOWN):
             print("多頭強勢")
-            txt.append("多頭強勢")
+            trendPower.append("多頭強勢")
             return 1
         elif DOWN > ((UP*0.2)+UP):
             print("空頭強勢")
-            txt.append("空頭強勢")
+            trendPower.append("空頭強勢")
             return 0
         else:
             print("多空均衡")
-            txt.append("多空均衡")
+            trendPower.append("多空均衡")
             return None
     except:
         print("比較多空權勢錯誤")
 
 def re(EX): #計算點位
     try:
-        H=sorted(Close) #排列Close資料由小到大
+        H=sorted(close) #排列Close資料由小到大
         Percentile = np.percentile(H,[0,25,50,75,100])  
         IQR = Percentile[3] - Percentile[1] #IQR=上四分位與下四分位的差值
         UpLimit = Percentile[3]+IQR*1.5 #上界=上四分位+1.5倍IQR
         DownLimit = Percentile[1]-IQR*1.5 #下界=下四分位+1.5倍四IQR
         benchmark=((UpLimit+DownLimit)/2)-EX #61.8%
         range=abs(benchmark+(benchmark/2)+(benchmark/16)+(benchmark/32)+(benchmark/64)+(benchmark/128)+(benchmark/1068)) #100.00005%
-        if EX == sorted(High,reverse=True)[0]:
+        if EX == sorted(high,reverse=True)[0]:
             return (EX-range)
-        if EX == sorted(Low)[0]:
+        if EX == sorted(low)[0]:
             return (EX+range)
     except:
         print("計算點位錯誤")
@@ -365,20 +367,20 @@ def predict(Name): #呼叫各函式進行判斷
         AAA()
         com=Compare(powerUP(None),powerDOWN(None))
         if com==1:
-            arry = np.array([sorted(Low)[0],re(sorted(Low)[0])])
+            arry = np.array([sorted(low)[0],re(sorted(low)[0])])
             FIV=[0,23.6,38.2,50,61.8,78.6,100]
             for x in range(0,7):
                 print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
                 W=int(np.percentile(arry,FIV[x])*10000)/10000
-                P.append(W)
+                recommendedPosition.append(W)
         if com==0:
-            arry = np.array([re(sorted(High,reverse=True)[0]),sorted(High,reverse=True)[0]])
+            arry = np.array([re(sorted(high,reverse=True)[0]),sorted(high,reverse=True)[0]])
             FIV=[100,78.6,61.8,50,38.2,23.6,0]
             for x in range(0,7):
                 print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
                 W=int(np.percentile(arry,FIV[x])*10000)/10000
-                P.append(W)
-        Variation(Open_time,Open,Close)
+                recommendedPosition.append(W)
+        Variation(openTime,openPrice,close)
         return 1
     except:
         return 0
@@ -395,7 +397,7 @@ async def on_ready():
 @bot.event
 #當有訊息時
 async def on_message(message):
-    channel=bot.get_channel(995959711776112683)
+    channel=bot.get_channel(1055110678425374721)
     keyword=['BTCUSDT','SOLUSDT','GMTUSDT','MATICUSDT','BELUSDT',
              'UNFIUSDT','XRPUSDT','SANDUSDT','AVAXUSDT','ADAUSDT',
              'LINKUSDT','AAVEUSDT','ATOMUSDT','XTZUSDT','NEARUSDT',
@@ -410,56 +412,56 @@ async def on_message(message):
         print(ID)
         if predict(ID) == 1 :
             embed=discord.Embed(title=ID+"預測結果",color=0x7ceefd)
-            embed.add_field(name="多空權勢", value=txt[0], inline=False)
+            embed.add_field(name="多空權勢", value=trendPower[0], inline=False)
             if Compare(powerUP(None),powerDOWN(None)) != None:
                 embed.add_field(name="------------------------------------------------------------------------", value="建議開單點位", inline=False)
-                embed.add_field(name=Ftext[0], value=P[0], inline=True)
-                embed.add_field(name=Ftext[1], value=P[1], inline=True)
-                embed.add_field(name=Ftext[2], value=P[2], inline=True)
-                embed.add_field(name=Ftext[3], value=P[3], inline=True)
-                embed.add_field(name=Ftext[4], value=P[4], inline=True)
-                embed.add_field(name=Ftext[5], value=P[5], inline=True)
-                embed.add_field(name=Ftext[6], value=P[6], inline=True)  
+                embed.add_field(name=fibonacciText[0], value=recommendedPosition[0], inline=True)
+                embed.add_field(name=fibonacciText[1], value=recommendedPosition[1], inline=True)
+                embed.add_field(name=fibonacciText[2], value=recommendedPosition[2], inline=True)
+                embed.add_field(name=fibonacciText[3], value=recommendedPosition[3], inline=True)
+                embed.add_field(name=fibonacciText[4], value=recommendedPosition[4], inline=True)
+                embed.add_field(name=fibonacciText[5], value=recommendedPosition[5], inline=True)
+                embed.add_field(name=fibonacciText[6], value=recommendedPosition[6], inline=True)  
             embed.add_field(name="-----------------------------------------------------------------------", value="建議開單時間", inline=False)
-            embed.add_field(name=Rtext[0], value=FT[0], inline=False)
-            embed.add_field(name=Rtext[1], value=FT[1], inline=False)
-            embed.add_field(name=Rtext[2], value=FT[2], inline=False)
-            embed.add_field(name=Rtext[3], value=FT[3], inline=False)
-            embed.add_field(name=Rtext[4], value=FT[4], inline=False)
-            embed.add_field(name=Rtext[5], value=FT[5], inline=False)
-            embed.add_field(name=Rtext[6], value=FT[6], inline=False)
+            embed.add_field(name=retracementText[0], value=recommendedTime[0], inline=False)
+            embed.add_field(name=retracementText[1], value=recommendedTime[1], inline=False)
+            embed.add_field(name=retracementText[2], value=recommendedTime[2], inline=False)
+            embed.add_field(name=retracementText[3], value=recommendedTime[3], inline=False)
+            embed.add_field(name=retracementText[4], value=recommendedTime[4], inline=False)
+            embed.add_field(name=retracementText[5], value=recommendedTime[5], inline=False)
+            embed.add_field(name=retracementText[6], value=recommendedTime[6], inline=False)
             await message.channel.send(embed=embed)
-            P.clear()
-            FT.clear()
-            txt.clear()
-            KK.clear()
-            SS.clear()
-            TT.clear()
-            Open_time.clear()
+            recommendedPosition.clear()
+            recommendedTime.clear()
+            trendPower.clear()
+            upK.clear()
+            downK.clear()
+            trendType.clear()
+            openTime.clear()
             volume.clear()
-            Open.clear()
-            High.clear()
-            Low.clear()
-            Close.clear()
-            OP.clear()
-            OPXP.clear()
-            PM.clear()
+            openPrice.clear()
+            high.clear()
+            low.clear()
+            close.clear()
+            averagePrice.clear()
+            priceRatio.clear()
+            trendMarker.clear()
         elif predict(ID) == 0:
-            P.clear()
-            FT.clear()
-            txt.clear()
-            KK.clear()
-            SS.clear()
-            TT.clear()
-            Open_time.clear()
+            recommendedPosition.clear()
+            recommendedTime.clear()
+            trendPower.clear()
+            upK.clear()
+            downK.clear()
+            trendType.clear()
+            openTime.clear()
             volume.clear()
-            Open.clear()
-            High.clear()
-            Low.clear()
-            Close.clear()
-            OP.clear()
-            OPXP.clear()
-            PM.clear()
+            openPrice.clear()
+            high.clear()
+            low.clear()
+            close.clear()
+            averagePrice.clear()
+            priceRatio.clear()
+            trendMarker.clear()
             await message.channel.send("錯誤無法預測")
 
-bot.run("enter your discord bot token")
+bot.run("MTA1NTEwODYwNTEwMTIzMjEzOA.GPwlbT.b7mbGilFdBpALFfN8iLPYtewtus0ckr5E6h458")
