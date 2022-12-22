@@ -1,12 +1,22 @@
-import discord
-import numpy as np
-from pybit import usdt_perpetual
-import json
-import time
-import datetime
-import pytz
-import heapq as hq
-from pybit import spot
+import numpy as np                  # 用於科學運算的數學套件
+import heapq as hq                  # 堆排序相關
+import datetime                     # 處理日期和時間的類別和函數
+import discord                      # 用於連接 Discord API
+import json                         # 處理 JSON 格式資料
+import time                         # 處理時間的函數
+import pytz                         # 處理時區的函數
+from pybit import usdt_perpetual    # 查詢 USDT 永續合約的行情資訊
+from pybit import spot              # 查詢實際交易市場的行情資訊
+
+"""
+Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的加密貨幣趨勢機器人，
+本專案同時應用於「國立臺中科技大學智慧生產工程系」人工智慧程式設計之期末報告使用。
+開源LICENSE：GNU General Public License v2.0
+
+Bybit-Predict is a cryptocurrency trend prediction robot developed by the CodeRyo team based on the BybitAPI for use on Discord. 
+This project is also used as the final report at National Taichung University of Science and Technology. 
+Open source LICENSE: GNU General Public License v2.0
+"""
 
 intents=discord.Intents.default()
 intents=discord.Intents().all()
