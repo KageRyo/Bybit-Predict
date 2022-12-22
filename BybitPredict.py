@@ -18,9 +18,8 @@ This project is also used as the final report at National Taichung University of
 Open source LICENSE: GNU General Public License v2.0
 """
 
-intents=discord.Intents.default()
-intents=discord.Intents().all()
-intents.message_content = True
+intents=discord.Intents().all()     # 獲取所有的 Intents 對象
+intents.message_content = True      # 允許讀取消息內容
 
 KK=[] #高於平均隻多頭K線
 SS=[] #高於平均隻空頭K線
