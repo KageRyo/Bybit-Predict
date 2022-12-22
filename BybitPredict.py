@@ -21,31 +21,31 @@ openPrice source LICENSE: GNU General Public License v2.0
 intents=discord.Intents().all()     # 獲取所有的 Intents 對象
 intents.message_content = True      # 允許讀取消息內容
 
-upK = []                # 高於平均的多頭K線
-downK = []              # 高於平均的空頭K線
-trendType = []          # 紀錄多空頭與十字線
-openTime = []           # K線Open_time資料
-volume = []             # K線volume資料
-openPrice = []          # K線Open資料
-high = []               # K線High資料
-low = []                # K線Low資料
-close = []              # K線Close資料
+upK = []                 # 高於平均的多頭K線
+downK = []               # 高於平均的空頭K線
+trendType = []           # 紀錄多空頭與十字線
+openTime = []            # K線Open_time資料
+volume = []              # K線volume資料
+openPrice = []           # K線Open資料
+high = []                # K線High資料
+low = []                 # K線Low資料
+close = []               # K線Close資料
 recommendedPosition = [] # 建議開單點位資料
-recommendedTime = []    # 建議開單時間資料
-trendPower = []         # 多空權勢資料
-averagePrice = []       # 每六根K線平均
-priceRatio = []         # 每根K線與前兩根K線平均差的比例的資料
-trendMarker = []        # 判斷三根K線趨勢轉換的資料
-orderStatus = []        # 訂單狀態資料
-walletStatus = []       # 錢包狀態資料
-wallet = []             # 錢包資料
-tradeResult = []        # trade()的回傳資料
+recommendedTime = []     # 建議開單時間資料
+trendPower = []          # 多空權勢資料
+averagePrice = []        # 每六根K線平均
+priceRatio = []          # 每根K線與前兩根K線平均差的比例的資料
+trendMarker = []         # 判斷三根K線趨勢轉換的資料
+orderStatus = []         # 訂單狀態資料
+walletStatus = []        # 錢包狀態資料
+wallet = []              # 錢包資料
+tradeResult = []         # trade()的回傳資料
 retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']
 fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']
 
 Bybit="https://api.bybit.com"
-APIK="fNsH1Odd8nNiY3jRTy"
-APIS="9bAWJ6AJQHL9SNMCAE64b6ErxCoJzNIN5ZKd"
+APIK="your bybit apikey"
+APIS="your bybit apis"
 
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
@@ -397,7 +397,7 @@ async def on_ready():
 @bot.event
 #當有訊息時
 async def on_message(message):
-    channel=bot.get_channel(1055110678425374721)
+    channel=bot.get_channel(your discrod chat channel)
     keyword=['BTCUSDT','SOLUSDT','GMTUSDT','MATICUSDT','BELUSDT',
              'UNFIUSDT','XRPUSDT','SANDUSDT','AVAXUSDT','ADAUSDT',
              'LINKUSDT','AAVEUSDT','ATOMUSDT','XTZUSDT','NEARUSDT',
@@ -464,4 +464,4 @@ async def on_message(message):
             trendMarker.clear()
             await message.channel.send("錯誤無法預測")
 
-bot.run("MTA1NTEwODYwNTEwMTIzMjEzOA.GPwlbT.b7mbGilFdBpALFfN8iLPYtewtus0ckr5E6h458")
+bot.run("your discord bot token")
