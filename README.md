@@ -37,17 +37,6 @@ python -m ensurepip --upgrade
 
 ---
 
-本程式被運用於國立臺中科技大學智慧生產工程系二年級人工智慧程式設計之期末報告  
-其報告人與開發者名單如下：  
-+ 1411068006 吳國維  
-+ 1411068014 張健勳  
-
-This program is used for the second-year artificial intelligence programming design final report of the Department of Intelligent Production Engineering at National Taichung University of Science and Technology. The list of report presenters and developers is as follows:  
-+ 1411068006 Wu,Kuo-Wei
-+ 1411068014 Chang,Chien-Hsun
- 
----
-
 如果您有任何問題歡迎向 CodeRyo 團隊聯繫，您可以透過以下電子郵件發送您的提問或於此 repo 發佈 issue。  
 If you have any questions, please don't hesitate to contact the CodeRyo team. You can send your questions via email or create an issue in this repo.  
 ```
