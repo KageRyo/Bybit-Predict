@@ -38,8 +38,8 @@ orderStatus = []         # 訂單狀態資料
 walletStatus = []        # 錢包狀態資料
 wallet = []              # 錢包資料
 tradeResult = []         # trade()的回傳資料
-retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']
-fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']
+retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']  # 回撤比例
+fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']           # 斐波那契比例
 
 Bybit="https://api.bybit.com"
 APIK="your bybit apikey"
