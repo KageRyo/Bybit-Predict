@@ -10,11 +10,9 @@ from pybit import spot              # 查詢實際交易市場的行情資訊
 
 """
 Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的加密貨幣趨勢機器人，
-本專案同時應用於「國立臺中科技大學智慧生產工程系」人工智慧程式設計之期末報告使用。
 開源LICENSE：GNU General Public License v2.0
 
 Bybit-Predict is a cryptocurrency trend prediction robot developed by the CodeRyo team based on the BybitAPI for use on Discord. 
-This project is also used as the final report at National Taichung University of Science and Technology. 
 openPrice source LICENSE: GNU General Public License v2.0
 """
 
