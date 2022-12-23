@@ -13,7 +13,7 @@ Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的�
 開源LICENSE：GNU General Public License v2.0
 
 Bybit-Predict is a cryptocurrency trend prediction robot developed by the CodeRyo team based on the BybitAPI for use on Discord. 
-openPrice source LICENSE: GNU General Public License v2.0
+open source LICENSE: GNU General Public License v2.0
 """
 
 intents=discord.Intents().all()     # 獲取所有的 Intents 對象
@@ -22,12 +22,12 @@ intents.message_content = True      # 允許讀取消息內容
 upK = []                 # 高於平均的多頭K線
 downK = []               # 高於平均的空頭K線
 trendType = []           # 紀錄多空頭與十字線
-openTime = []            # K線Open_time資料
-volume = []              # K線volume資料
-openPrice = []           # K線Open資料
-high = []                # K線High資料
-low = []                 # K線Low資料
-close = []               # K線Close資料
+openTime = []            # K線時間戳資料
+open = []                # K線開盤價資料
+high = []                # K線最高價資料
+low = []                 # K線最低價資料
+close = []               # K線收盤價資料
+volume = []              # K線成交量資料
 recommendedPosition = [] # 建議開單點位資料
 recommendedTime = []     # 建議開單時間資料
 trendPower = []          # 多空權勢資料
@@ -115,7 +115,7 @@ def savedata(Kline):#存取K線資料
         print(Kline)
         openTime.append(Kline[0]) 
         volume.append(Kline[1])
-        openPrice.append(Kline[2])
+        open.append(Kline[2])
         high.append(Kline[3])
         low.append(Kline[4])
         close.append(Kline[5])
@@ -128,7 +128,7 @@ def PB(T): #回推K線
     try:
         x=0
         while x < T:
-            amount=abc(openPrice[x],high[x],low[x],close[x])
+            amount=abc(open[x],high[x],low[x],close[x])
             if amount==1:
                 powerUP(volume[x])
             if amount==0:
@@ -178,13 +178,13 @@ def AAA(): #計算每六根K線的平均
     except:
         print("計算六根平均K線錯誤")
 
-def Variation(openTime,openPrice,close): #計算時間線
+def Variation(openTime,open,close): #計算時間線
     try:
         difference=[]
         timerange=[]
         futuretime=[]
         for x in range(42):
-            difference.append(abs(openPrice[x]-close[x]))
+            difference.append(abs(open[x]-close[x]))
         max =map(difference.index,hq.nlargest(2,difference))
         for x in list(max):
             timerange.append(openTime[x])
@@ -378,7 +378,7 @@ def predict(Name): #呼叫各函式進行判斷
                 print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
                 W=int(np.percentile(arry,FIV[x])*10000)/10000
                 recommendedPosition.append(W)
-        Variation(openTime,openPrice,close)
+        Variation(openTime,open,close)
         return 1
     except:
         return 0
@@ -437,7 +437,7 @@ async def on_message(message):
             trendType.clear()
             openTime.clear()
             volume.clear()
-            openPrice.clear()
+            open.clear()
             high.clear()
             low.clear()
             close.clear()
@@ -453,7 +453,7 @@ async def on_message(message):
             trendType.clear()
             openTime.clear()
             volume.clear()
-            openPrice.clear()
+            open.clear()
             high.clear()
             low.clear()
             close.clear()
