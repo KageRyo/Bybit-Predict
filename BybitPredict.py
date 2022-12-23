@@ -5,8 +5,8 @@ import discord                      # 用於連接 Discord API
 import json                         # 處理 JSON 格式資料
 import time                         # 處理時間的函數
 import pytz                         # 處理時區的函數
-from pybit import usdt_perpetual    # 查詢 USDT 永續合約的行情資訊
-from pybit import spot              # 查詢實際交易市場的行情資訊
+from pybit import usdt_perpetual    # 查詢 USDT 永續合約的接口
+from pybit import spot              # 查詢實際交易市場的接口
 
 """
 Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的加密貨幣趨勢機器人，
