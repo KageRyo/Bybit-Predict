@@ -19,8 +19,8 @@ open source LICENSE: GNU General Public License v2.0
 intents=discord.Intents().all()     # 獲取所有的 Intents 對象
 intents.message_content = True      # 允許讀取消息內容
 
-upK = []                 # 高於平均的多頭K線
-downK = []               # 高於平均的空頭K線
+bullK = []               # 高於平均的多頭K線
+bearK = []               # 高於平均的空頭K線
 trendType = []           # 紀錄多空頭與十字線
 openTime = []            # K線時間戳資料
 open = []                # K線開盤價資料
@@ -270,16 +270,16 @@ def abc(open,high,low,close): #檢測多空頭
 def powerUP(volume): #計算多頭量能
     try:
         if volume!=None:
-            upK.append(volume)
-            print("多頭"+str(upK))
+            bullK.append(volume)
+            print("多頭"+str(bullK))
         if volume==None:
             t=0
             x=0
             UPtotal=0
-            if len(upK) != 0:
-                while x<len(upK):
-                    if upK[x]>=np.average(upK): #求大於KK平均得值
-                        UPtotal=UPtotal+upK[x]
+            if len(bullK) != 0:
+                while x<len(bullK):
+                    if bullK[x]>=np.average(bullK): #求大於KK平均得值
+                        UPtotal=UPtotal+bullK[x]
                         t+=1
                     x+=1
                 UPaverage=UPtotal/t
@@ -295,17 +295,17 @@ def powerUP(volume): #計算多頭量能
 def powerDOWN(volume): #計算空頭量能
     try:
         if volume!=None:
-            downK.append(volume)
-            print("空頭"+str(downK))
+            bearK.append(volume)
+            print("空頭"+str(bearK))
         if volume==None:
             t=0
             x=0
             DOWNtotal=0
             DOWNaverage=0
-            if len(downK) != 0:
-                while x<len(downK):
-                    if downK[x]>=np.average(downK):
-                        DOWNtotal=DOWNtotal+downK[x]
+            if len(bearK) != 0:
+                while x<len(bearK):
+                    if bearK[x]>=np.average(bearK):
+                        DOWNtotal=DOWNtotal+bearK[x]
                         t+=1
                     x+=1
                 DOWNaverage=DOWNtotal/t
@@ -432,8 +432,8 @@ async def on_message(message):
             recommendedPosition.clear()
             recommendedTime.clear()
             trendPower.clear()
-            upK.clear()
-            downK.clear()
+            bullK.clear()
+            bearK.clear()
             trendType.clear()
             openTime.clear()
             volume.clear()
@@ -448,8 +448,8 @@ async def on_message(message):
             recommendedPosition.clear()
             recommendedTime.clear()
             trendPower.clear()
-            upK.clear()
-            downK.clear()
+            bullK.clear()
+            bearK.clear()
             trendType.clear()
             openTime.clear()
             volume.clear()
