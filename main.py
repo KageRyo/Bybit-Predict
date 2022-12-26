@@ -33,3 +33,7 @@ volume = []              # K線成交量資料
 recommendedPosition = [] # 建議開單點位資料
 recommendedTime = []     # 建議開單時間資料
 trendPower = []          # 多空
+
+"""
+在 main.py , bot.py , kline.py , config.json 編輯完成前請先使用 BybitPredict.py 運行。   
+"""
