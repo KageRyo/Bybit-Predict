@@ -108,42 +108,19 @@ def PB(T): #回推K線
 
 def AAA(): #計算每六根K線的平均
     try:
-        O=[]
-        for x in volume:
-            if len(O)==6:
-                averagePrice.append(np.average(O))
-                O.clear()
-                O.append(x)
-            else:
-                O.append(x) 
-        averagePrice.append(np.average(O))
-        O.clear()
-        for x in range(0,int(len(volume)/6)):#計算每根K線與前兩根K線平均差的比例
-            if x==0:
-                None
-            elif x==1:
-                priceRatio.append((averagePrice[0]-averagePrice[1])/averagePrice[1])
-            elif x==2:
-                priceRatio.append(((averagePrice[0]+averagePrice[1])/2-averagePrice[2])/averagePrice[2])
-            elif x==3:
-                priceRatio.append(((averagePrice[0]+averagePrice[1]+averagePrice[2])/3-averagePrice[3])/averagePrice[3])
-            elif x==4:
-                priceRatio.append(((averagePrice[0]+averagePrice[1]+averagePrice[2]+averagePrice[3])/4-averagePrice[4])/averagePrice[4])
-            else:
-                priceRatio.append((((averagePrice[x-1]+averagePrice[x-2]+averagePrice[x-3]+averagePrice[x-4]+averagePrice[x-5])/5)-averagePrice[x])/averagePrice[x])
-        for x in priceRatio : #判斷趨勢轉換
-            if x > 0 :
-                trendMarker.append(1) #上升
-            else:
-                trendMarker.append(0) #下降
-        L=0
-        for x in trendMarker:
-            if x == trendMarker[0]:
-                L+=1
-            else:
-                break
-        print(L)
-        PB(L*6) 
+        averagePrice = []
+        for i in range(0, len(volume), 6):
+            averagePrice.append(np.average(volume[i:i+6]))
+
+        priceRatio = []
+        for i in range(2, len(averagePrice)):
+            priceRatio.append((np.average(averagePrice[i-2:i]) - averagePrice[i]) / averagePrice[i])
+
+        trendMarker = [1 if ratio > 0 else 0 for ratio in priceRatio]
+
+        initial_trend_length = len(trendMarker) - len(trendMarker[trendMarker[0]:])
+        print(initial_trend_length)
+        PB(initial_trend_length * 6)
     except:
         print("計算六根平均K線錯誤")
 
