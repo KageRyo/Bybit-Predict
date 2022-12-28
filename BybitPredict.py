@@ -78,35 +78,6 @@ def KLineStatus(times,Name): #呼叫實盤K線數據
         print("請求K線錯誤")
         time.sleep(3)
         KLineStatus(times,Name)
-def NKLineStatus(Name):
-    try:
-        session_unauth = spot.HTTP(
-            endpoint=Bybit
-        )
-        data=session_unauth.latest_information_for_symbol(
-            symbol=Name
-        )
-        try:
-            with open("Ndata.json","w") as f:
-                json.dump(data,f)
-            with open('Ndata.json') as f:
-                data = json.load(f)
-            data=data.get("result")
-            try:
-                da=str(data).strip('{}')
-                Del="_'!@#$%^&*()\/:*?<>|-+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
-                K=[]
-                K = float(''.join( x for x in da.split(', ')[6] if x not in Del))
-                return K
-            except:
-                print("拆解Ndata.json資料錯誤")
-        except:
-            print("建立Ndata.json錯誤")
-    except:
-        print("請求最新K線錯誤")
-        time.sleep(3)
-        NKLineStatus(Name)
-        
 
 def savedata(Kline):#存取K線資料
     try:
