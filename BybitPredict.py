@@ -62,15 +62,13 @@ def KLineStatus(times,Name): #呼叫實盤K線數據
             with open("data.json","w") as f:
                 json.dump(data,f)
             with open('data.json') as f:
-                data = json.load(f)
+                data=(json.load(f))
+                data=data["result"]
             try:
-                data=data.get("result")
-                da=str(data).strip('{[]}')
-                Del="_'!@#$%^&*()\/:*?<>|-+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+                Kline_data=["open_time","volume","open","high","low","close"]
                 Kline=[]
-                for x in range(6): #擷取需要訊息
-                    K = float(''.join( x for x in da.split(', ')[5+x] if x not in Del))
-                    Kline.append(K)   #Kline=[openTime,volume,open,high,low,close]
+                for i in Kline_data: 
+                    Kline.append(data[0][i])  #Kline=[open_time,volume,open,high,low,close]
                 return Kline
             except:
                 print("拆解data.json資料錯誤")
