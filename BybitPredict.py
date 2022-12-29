@@ -297,6 +297,21 @@ def re(EX): #計算點位
     except:
         print("計算點位錯誤")
 
+def calcPercentiles(com):
+    if com==1:
+            arry = np.array([sorted(low)[0],re(sorted(low)[0])])
+            FIV=[0,23.6,38.2,50,61.8,78.6,100]
+            for x in range(0,7):
+                print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
+                W=int(np.percentile(arry,FIV[x])*10000)/10000
+                recommendedPosition.append(W)
+    if com==0:
+            arry = np.array([re(sorted(high,reverse=True)[0]),sorted(high,reverse=True)[0]])
+            FIV=[100,78.6,61.8,50,38.2,23.6,0]
+            for x in range(0,7):
+                print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
+                W=int(np.percentile(arry,FIV[x])*10000)/10000
+                recommendedPosition.append(W)
 def predict(Name): #呼叫各函式進行判斷
     try:
         se=0
@@ -309,21 +324,7 @@ def predict(Name): #呼叫各函式進行判斷
             time.sleep(0.1)
             x+=1
         AAA()
-        com=Compare(powerUP(None),powerDOWN(None))
-        if com==1:
-            arry = np.array([sorted(low)[0],re(sorted(low)[0])])
-            FIV=[0,23.6,38.2,50,61.8,78.6,100]
-            for x in range(0,7):
-                print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
-                W=int(np.percentile(arry,FIV[x])*10000)/10000
-                recommendedPosition.append(W)
-        if com==0:
-            arry = np.array([re(sorted(high,reverse=True)[0]),sorted(high,reverse=True)[0]])
-            FIV=[100,78.6,61.8,50,38.2,23.6,0]
-            for x in range(0,7):
-                print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
-                W=int(np.percentile(arry,FIV[x])*10000)/10000
-                recommendedPosition.append(W)
+        calcPercentiles(Compare(powerUP(None),powerDOWN(None)))
         Variation(openTime,open,close)
         return 1
     except:
