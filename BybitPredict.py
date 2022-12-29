@@ -23,10 +23,10 @@ bullK = []               # 高於平均的多頭K線
 bearK = []               # 高於平均的空頭K線
 trendType = []           # 紀錄多空頭與十字線
 openTime = []            # K線時間戳資料
-open = []                # K線開盤價資料
-high = []                # K線最高價資料
-low = []                 # K線最低價資料
-close = []               # K線收盤價資料
+klineOpen = []           # K線開盤價資料
+klineHigh = []           # K線最高價資料
+klineLow = []            # K線最低價資料
+klineClose = []          # K線收盤價資料
 volume = []              # K線成交量資料
 recommendedPosition = [] # 建議開單點位資料
 recommendedTime = []     # 建議開單時間資料
@@ -84,10 +84,10 @@ def savedata(Kline):#存取K線資料
         print(Kline)
         openTime.append(Kline[0]) 
         volume.append(Kline[1])
-        open.append(Kline[2])
-        high.append(Kline[3])
-        low.append(Kline[4])
-        close.append(Kline[5])
+        klineOpen.append(Kline[2])
+        klineHigh.append(Kline[3])
+        klineLow.append(Kline[4])
+        klineClose.append(Kline[5])
         return 1
     except:
         print("儲存K線資料錯誤")
@@ -97,7 +97,7 @@ def PB(T): #回推K線
     try:
         x=0
         while x < T:
-            amount=abc(open[x],high[x],low[x],close[x])
+            amount=abc(klineOpen[x],klineHigh[x],klineLow[x],klineClose[x])
             if amount==1:
                 powerUP(volume[x])
             if amount==0:
@@ -283,30 +283,30 @@ def Compare(UP,DOWN): #比較多空權勢
 
 def re(EX): #計算點位
     try:
-        H=sorted(close) #排列Close資料由小到大
+        H=sorted(klineClose) #排列Close資料由小到大
         Percentile = np.percentile(H,[0,25,50,75,100])  
         IQR = Percentile[3] - Percentile[1] #IQR=上四分位與下四分位的差值
         UpLimit = Percentile[3]+IQR*1.5 #上界=上四分位+1.5倍IQR
         DownLimit = Percentile[1]-IQR*1.5 #下界=下四分位+1.5倍四IQR
         benchmark=((UpLimit+DownLimit)/2)-EX #61.8%
         range=abs(benchmark+(benchmark/2)+(benchmark/16)+(benchmark/32)+(benchmark/64)+(benchmark/128)+(benchmark/1068)) #100.00005%
-        if EX == sorted(high,reverse=True)[0]:
+        if EX == sorted(klineHigh,reverse=True)[0]:
             return (EX-range)
-        if EX == sorted(low)[0]:
+        if EX == sorted(klineLow)[0]:
             return (EX+range)
     except:
         print("計算點位錯誤")
 
 def calcPercentiles(com):
     if com==1:
-            arry = np.array([sorted(low)[0],re(sorted(low)[0])])
+            arry = np.array([sorted(klineLow)[0],re(sorted(klineLow)[0])])
             FIV=[0,23.6,38.2,50,61.8,78.6,100]
             for x in range(0,7):
                 print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
                 W=int(np.percentile(arry,FIV[x])*10000)/10000
                 recommendedPosition.append(W)
     if com==0:
-            arry = np.array([re(sorted(high,reverse=True)[0]),sorted(high,reverse=True)[0]])
+            arry = np.array([re(sorted(klineHigh,reverse=True)[0]),sorted(klineHigh,reverse=True)[0]])
             FIV=[100,78.6,61.8,50,38.2,23.6,0]
             for x in range(0,7):
                 print(int(np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
@@ -325,7 +325,7 @@ def predict(Name): #呼叫各函式進行判斷
             x+=1
         AAA()
         calcPercentiles(Compare(powerUP(None),powerDOWN(None)))
-        Variation(openTime,open,close)
+        Variation(openTime,klineOpen,klineClose)
         return 1
     except:
         return 0
@@ -384,10 +384,10 @@ async def on_message(message):
             trendType.clear()
             openTime.clear()
             volume.clear()
-            open.clear()
-            high.clear()
-            low.clear()
-            close.clear()
+            klineOpen.clear()
+            klineHigh.clear()
+            klineLow.clear()
+            klineClose.clear()
             averagePrice.clear()
             priceRatio.clear()
             trendMarker.clear()
@@ -400,10 +400,10 @@ async def on_message(message):
             trendType.clear()
             openTime.clear()
             volume.clear()
-            open.clear()
-            high.clear()
-            low.clear()
-            close.clear()
+            klineOpen.clear()
+            klineHigh.clear()
+            klineLow.clear()
+            klineClose.clear()
             averagePrice.clear()
             priceRatio.clear()
             trendMarker.clear()
