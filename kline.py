@@ -34,7 +34,7 @@ def predict(ID):
                 if savedata(KLineStatus(Wtime()-se,ID))==1:
                     break
             se+=14400
-            ipk.time.sleep(0.1)
+            ipk.time.sleep(0.02)
             x+=1
         AAA()
         calcPercentiles(Compare(powerUP(None),powerDOWN(None)))
