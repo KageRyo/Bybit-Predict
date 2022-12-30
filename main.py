@@ -16,23 +16,6 @@ with open("config.json") as f:
     config=json.load(f)
     token=config['discord_bot_token']
     channelID=int(config['discord_channel_id'])
-def predict(ID):
-    try:
-        se=0
-        x=0
-        while x<180  :
-            while True:
-                if kline.savedata(kline.KLineStatus(kline.Wtime()-se,ID))==1:
-                    break
-                se+=14400
-                kline.time.sleep(0.1)
-                x+=1
-        kline.AAA()
-        kline.calcPercentiles(kline.Compare(kline.powerUP(None),kline.powerDOWN(None)))
-        kline.Variation(kline.openTime,kline.klineOpen,kline.klineClose)
-        return 1
-    except:
-        return 0
 bot = discord.Client(intents=intents)
 
 @bot.event
@@ -57,7 +40,8 @@ async def on_message(message):
     if message.content in keyword and message.author and message.channel == channel:
         await message.channel.send(ID+"預測中請稍後")
         print(ID)
-        if predict(ID) == 1 :
+        result=kline.predict(ID)
+        if  result == 1 :
             embed=discord.Embed(title=ID+"預測結果",color=0x7ceefd)
             embed.add_field(name="多空權勢", value=kline.trendPower[0], inline=False)
             if kline.Compare(kline.powerUP(None),kline.powerDOWN(None)) != None:
@@ -79,7 +63,7 @@ async def on_message(message):
             embed.add_field(name=kline.retracementText[6], value=kline.recommendedTime[6], inline=False)
             await message.channel.send(embed=embed)
             kline.dataClear()
-        elif predict(ID) == 0:
+        elif result == 0:
             kline.dataClear()
             await message.channel.send("錯誤無法預測")
 

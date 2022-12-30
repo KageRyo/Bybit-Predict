@@ -25,6 +25,24 @@ with open("config.json") as f:
     config=ipk.json.load(f)
     APIK=config['bybit_api_key']
     APIS=config['bybit_api_secret']
+def predict(ID):
+    try:
+        se=0
+        x=0
+        while x<180:
+            while True:
+                if savedata(KLineStatus(Wtime()-se,ID))==1:
+                    break
+            se+=14400
+            ipk.time.sleep(0.1)
+            x+=1
+        AAA()
+        calcPercentiles(Compare(powerUP(None),powerDOWN(None)))
+        Variation(openTime,klineOpen,klineClose)
+        return 1
+    except:
+        return 0
+
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
@@ -263,6 +281,22 @@ def Compare(UP,DOWN): #比較多空權勢
             return None
     except:
         print("比較多空權勢錯誤")
+
+def calcPercentiles(com):
+    if com==1:
+        arry = ipk.np.array([sorted(klineLow)[0],re(sorted(klineLow)[0])])
+        FIV=[0,23.6,38.2,50,61.8,78.6,100]
+        for x in range(0,7):
+            print(int(ipk.np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
+            W=int(ipk.np.percentile(arry,FIV[x])*10000)/10000
+            recommendedPosition.append(W)
+    if com==0:
+        arry = ipk.np.array([re(sorted(klineHigh,reverse=True)[0]),sorted(klineHigh,reverse=True)[0]])
+        FIV=[100,78.6,61.8,50,38.2,23.6,0]
+        for x in range(0,7):
+            print(int(ipk.np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
+            W=int(ipk.np.percentile(arry,FIV[x])*10000)/10000
+            recommendedPosition.append(W)
 
 def re(EX): #計算點位
     try:
