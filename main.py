@@ -24,9 +24,9 @@ def predict(ID):
             while True:
                 if kline.savedata(kline.KLineStatus(kline.Wtime()-se,ID))==1:
                     break
-            se+=14400
-            kline.time.sleep(0.1)
-            x+=1
+                se+=14400
+                kline.time.sleep(0.1)
+                x+=1
         kline.AAA()
         kline.calcPercentiles(kline.Compare(kline.powerUP(None),kline.powerDOWN(None)))
         kline.Variation(kline.openTime,kline.klineOpen,kline.klineClose)
