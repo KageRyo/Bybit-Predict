@@ -3,17 +3,9 @@
 Predict cryptocurrency trends using Python and the Bybit exchange API
 
 ---
-這段代碼定義了一個名為 KLineStatus 的函數，它從 Bybit API 檢索和處理加密貨幣數據。該函數接受兩個參數：times 和 Name。times 是指定要檢索哪些數據的時間參數，Name 是指定要檢索數據的加密貨幣對的字符串。
+這支程式是基於 Bybit 交易所 API 的加密貨幣價格預測程式，使用 Python 語言進行程式開發，並引用了 numpy、heapq、datetime、discord、json、time、pytz 和 pybit 這些函式庫，隨著加密貨幣席捲全球，越來越多的人開始尋找有效的方法來預測加密貨幣的價格走勢，為了解決這個問題，我們決定開發一支使用 Python 和 Bybit 交易所 API 的程式，以便進行加密貨幣價格分析和預測，我們希望透過這支程式，能夠為投資者和交易員提供有價值的解決方案，幫助他們在加密貨幣市場中做出明智的決策。  
 
-函數首先使用 usdt_perpetual.HTTP 函數初始化與 Bybit API 的未經身份驗證的 HTTP 會話，並將 Bybit API 端點 URL、API 密鑰和 API 秘密作為參數傳遞。然後，它調用此會話上的 query_kline 方法來請求指定的加密貨幣對的 K 線數據。interval 參數設置為 240，對應於 4 小時的時間間隔，limit 參數設置為 1，僅檢索一個數據點。from_time 參數設置為 times 參數的值，該值指定要檢索數據的時間。
-
-函數通過提取某些值並將它們附加到列表中來處理檢索的數據。例如，Open_time 列表會被附加數據中的 Open_time 值，volume 列表會被附加 volume 值，以此類推。函數還計算最後六個數據點的平均值，並將結果附加到 OP 列表中。最後，函數返回 Open_time、volume、Open、High、Low 和 Close 列表。
-
-This code define a function called KLineStatus that retrieves and processes cryptocurrency data from the Bybit API. This function takes in two arguments: times and Name. times is a time parameter that specifies which data to retrieve, and Name is a string that specifies the cryptocurrency pair to retrieve data for.
-
-The function first initializes an unauthenticated HTTP session with the Bybit API using the usdt_perpetual.HTTP function, passing in the Bybit API endpoint URL, the API key, and the API secret as arguments. It then calls the query_kline method on this session to request K-line data for the specified cryptocurrency pair. The interval parameter is set to 240, which corresponds to a 4-hour time interval, and the limit parameter is set to 1, which retrieves only one data point. The from_time parameter is set to the value of the times argument, which specifies the time to retrieve data for.
-
-The function then processes the retrieved data by extracting certain values and appending them to lists. For example, the Open_time list is appended with the Open_time value from the data, the volume list is appended with the volume value, and so on. The function also calculates the average of the last six data points and appends the result to the OP list. Finally, the function returns the Open_time, volume, Open, High, Low, and Close lists.
+This program is a cryptocurrency price prediction program based on the Bybit exchange API. It is developed using the Python language and incorporates the numpy, heapq, datetime, discord, json, time, pytz, and pybit libraries. As cryptocurrency continues to sweep the globe, more and more people are looking for effective ways to predict the price trend of cryptocurrency. In order to address this problem, we have decided to develop a program using Python and the Bybit exchange API for cryptocurrency price analysis and prediction. We hope that through this program, we can provide valuable solutions for investors and traders, helping them make wise decisions in the cryptocurrency market.
 
 ---
 
