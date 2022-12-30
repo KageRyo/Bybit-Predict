@@ -1,7 +1,7 @@
 {
-    "bybit_api_key": "",
-    "bybit_api_secret": "",
+    "bybit_api_key": "bybit_api_key",
+    "bybit_api_secret": "bybit_api_secret",
     
-    "discord_bot_token":"",
-    "discord_channel_id":""
+    "discord_bot_token":"discord_bot_token",
+    "discord_channel_id":"discord_channel_id"
 }
