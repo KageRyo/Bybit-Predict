@@ -22,8 +22,6 @@ tradeResult = []         # trade()的回傳資料
 retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']  # 回撤比例
 fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']           # 斐波那契比例
 
-Bybit="https://api.bybit.com"
-
 with open("config.json") as f:
     config=ipk.json.load(f)
     APIK=config['bybit_api_key']
@@ -50,14 +48,14 @@ def predict(ID):
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
-            endpoint=Bybit,
+            endpoint="https://api.bybit.com",
             api_key=APIK,
             api_secret=APIS
         )
         data=session_unauth.query_kline( #請求K線資料
             symbol=str(Name),
-            interval=240, #抓取240分線(四小時)
-            limit=1,    #抓取一個K線數據
+            interval=240,       #抓取240分線(四小時)
+            limit=1,            #抓取一個K線數據
             from_time=times     #抓取目標K線時間
         )
         try:
