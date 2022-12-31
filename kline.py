@@ -1,4 +1,4 @@
-import import_pkg as ipk
+import imports as ipk
 bullK = []               # 高於平均的多頭K線
 bearK = []               # 高於平均的空頭K線
 trendType = []           # 紀錄多空頭與十字線

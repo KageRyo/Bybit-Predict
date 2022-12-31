@@ -1,6 +1,6 @@
 import kline
 import discord
-from import_pkg import json
+from imports import json
 
 """
 Bybit-Predict 是 CodeRyo 團隊基於 BybitAPI 開發應用於 Discord 上的加密貨幣趨勢機器人，
