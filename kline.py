@@ -1,4 +1,5 @@
 import imports as ipk
+
 bullK = []               # 高於平均的多頭K線
 bearK = []               # 高於平均的空頭K線
 trendType = []           # 紀錄多空頭與十字線
@@ -20,11 +21,14 @@ wallet = []              # 錢包資料
 tradeResult = []         # trade()的回傳資料
 retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']  # 回撤比例
 fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']           # 斐波那契比例
+
 Bybit="https://api.bybit.com"
+
 with open("config.json") as f:
     config=ipk.json.load(f)
     APIK=config['bybit_api_key']
     APIS=config['bybit_api_secret']
+
 def predict(ID):
     try:
         se=0
