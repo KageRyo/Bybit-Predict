@@ -48,6 +48,7 @@ def predict(ID):
 def KLineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
+            # 如果您希望使用測試網請記得更改endpoint的連結
             endpoint="https://api.bybit.com",
             api_key=APIK,
             api_secret=APIS
