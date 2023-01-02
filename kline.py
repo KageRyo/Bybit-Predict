@@ -52,7 +52,7 @@ def predict(ID):
     except:
         return 0
 
-def klineStatus(times,Name): #呼叫實盤K線數據
+def klineStatus(times,coin): #呼叫實盤K線數據
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
             # 如果您希望使用測試網請記得更改endpoint的連結
@@ -61,7 +61,7 @@ def klineStatus(times,Name): #呼叫實盤K線數據
             api_secret=APIS
         )
         data=session_unauth.query_kline( #請求K線資料
-            symbol=str(Name),
+            symbol=str(coin),
             interval=240,       #抓取240分線(四小時)
             limit=1,            #抓取一個K線數據
             from_time=times     #抓取目標K線時間
@@ -85,7 +85,7 @@ def klineStatus(times,Name): #呼叫實盤K線數據
     except:
         print("請求K線錯誤")
         ipk.time.sleep(3)
-        klineStatus(times,Name)
+        klineStatus(times,coin)
 
 def savedata(Kline):#存取K線資料
     try:
