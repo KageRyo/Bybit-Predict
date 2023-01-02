@@ -12,22 +12,26 @@ open source LICENSE: GNU General Public License v2.0
 intents=discord.Intents().all()     # 獲取所有的 Intents 對象
 intents.message_content = True      # 允許讀取消息內容
 
+# 讀取 config.json 的設定檔案
 with open("config.json") as f:
     config=json.load(f)
     token=config['discord_bot_token']
     channelID=int(config['discord_channel_id'])
 bot = discord.Client(intents=intents)
 
+# Discord 機器人狀態設置
 @bot.event
 async def on_ready():
     print('目前登入身份：',bot.user)
     game = discord.Game('預測機器人')
-    #discord.Status.<狀態>，可以是online,offline,idle,dnd,invisible
+    # discord.Status.<狀態>，可以是online,offline,idle,dnd,invisible
     await bot.change_presence(status=discord.Status.online, activity=game)
 
+# Discord 機器人對訊息事件的程式
 @bot.event
 async def on_message(message):
-    channel=bot.get_channel(channelID)
+    channel=bot.get_channel(channelID) # 指定頻道ID
+    # 接收的關鍵詞（如果您想分析的幣不在這裡可自行添加）
     keyword=['BTCUSDT','SOLUSDT','GMTUSDT','MATICUSDT','BELUSDT',
              'UNFIUSDT','XRPUSDT','SANDUSDT','AVAXUSDT','ADAUSDT',
              'LINKUSDT','AAVEUSDT','ATOMUSDT','XTZUSDT','NEARUSDT',
@@ -37,11 +41,13 @@ async def on_message(message):
              'XMRUSDT','ETHUSDT']
     ID=message.content
 
+    # 收到訊息後的判斷式
     if message.content in keyword and message.author and message.channel == channel:
         await message.channel.send(ID+"預測中請稍後")
         print(ID)
         result=kline.predict(ID)
-        if  result == 1 :
+        # 正確完成預測後輸出結果
+        if result == 1 :
             embed=discord.Embed(title=ID+"預測結果",color=0x7ceefd)
             embed.add_field(name="多空權勢", value=kline.trendPower[0], inline=False)
             if kline.compare(kline.calcPowerUp(None),kline.calcPowerDown(None)) != None:
@@ -63,8 +69,10 @@ async def on_message(message):
             embed.add_field(name=kline.retracementText[6], value=kline.recommendedTime[6], inline=False)
             await message.channel.send(embed=embed)
             kline.dataClear()
+        # 預測失敗時的提示文字
         elif result == 0:
             kline.dataClear()
             await message.channel.send("錯誤無法預測")
 
+# Discord 機器人 TOKEN
 bot.run(token)
