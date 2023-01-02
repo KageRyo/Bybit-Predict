@@ -29,11 +29,13 @@ tradeResult = []         # trade()的回傳資料
 retracementText = ['138.2%', '150%', '161.8%', '200%', '238.2%', '261.8%', '300%']  # 回撤比例
 fibonacciText = ['0%', '23.6%', '38.2%', '50%', '61.8%', '78.6%', '100%']           # 斐波那契比例
 
+# 讀取 config.json 的設定檔案
 with open("config.json") as f:
     config=ipk.json.load(f)
     APIK=config['bybit_api_key']
     APIS=config['bybit_api_secret']
 
+# 用於呼叫各方法的主要程式
 def predict(ID):
     try:
         se=0
@@ -52,7 +54,8 @@ def predict(ID):
     except:
         return 0
 
-def klineStatus(times,coin): #呼叫實盤K線數據
+# 呼叫實盤 K 線數據
+def klineStatus(times,coin): 
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
             # 如果您希望使用測試網請記得更改endpoint的連結
@@ -87,7 +90,8 @@ def klineStatus(times,coin): #呼叫實盤K線數據
         ipk.time.sleep(3)
         klineStatus(times,coin)
 
-def saveData(Kline):#存取K線資料
+# 存取 K 線資料
+def saveData(Kline):
     try:
         print(Kline)
         openTime.append(Kline[0]) 
@@ -101,7 +105,8 @@ def saveData(Kline):#存取K線資料
         print("儲存K線資料錯誤")
         return 0
 
-def backTestKline(T): #回推K線
+# 回推 K 線
+def backTestKline(T):
     try:
         x=0
         while x < T:
@@ -114,7 +119,8 @@ def backTestKline(T): #回推K線
     except:
         print("回推K線錯誤")
 
-def calcAverage(): #計算每六根K線的平均
+# 計算每六根 K 線的平均
+def calcAverage():
     try:
         averagePrice = []
         for i in range(0, len(volume), 6):
@@ -132,7 +138,8 @@ def calcAverage(): #計算每六根K線的平均
     except:
         print("計算六根平均K線錯誤")
 
-def variation(openTime,open,close): #計算時間線
+# 計算時間線
+def variation(openTime,open,close): 
     try:
         difference=[]
         timerange=[]
@@ -157,7 +164,8 @@ def variation(openTime,open,close): #計算時間線
     except:
         print("計算時間線錯誤")
 
-def utcToTimestamp(): #換算UTC為秒
+# 換算 UTC 為秒時間戳
+def utcToTimestamp(): 
     try:
         tz = ipk.timezone( 'Europe/London' )   #設置時區為UTC+0
         timeString  =  ipk.datetime.datetime.now(tz).strftime( "%Y-%m-%d %H:%M:%S" )
@@ -167,7 +175,8 @@ def utcToTimestamp(): #換算UTC為秒
     except:
         print("換算UTC為秒錯誤")
 
-def timestampToUtc(time_stamp): #換算秒為UTC
+# 換算秒時間戳為 UTC
+def timestampToUtc(time_stamp): 
     try:
         struct_time=ipk.time.localtime(time_stamp)
         timeString =ipk.time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
@@ -175,13 +184,15 @@ def timestampToUtc(time_stamp): #換算秒為UTC
     except:
         print("換算秒為UTC錯誤")
 
-def checkTrend(open,high,low,close): #檢測多空頭
+# 檢測為多頭或空頭
+def checkTrend(open,high,low,close): 
     try:
         a=0
         b=0
         c=0
         d=0
         e=0
+
         if close > open:
             if abs(high-close)>abs((open-close)*4):
                 #print("長上引線")
@@ -196,32 +207,36 @@ def checkTrend(open,high,low,close): #檢測多空頭
             if abs(close-low)>abs((open-close)*4):
                 #print("長下引線")
                 b=1
-        if (open == high) and (high == low) and (low == close):             #垃圾標才會出現的K線狀態
+
+        # 不良標的會出現的狀況
+        if (open == high) and (high == low) and (low == close):
             c=1
+        # 十字線
         if a==1 and b==1 :
-            #print("十字線")
             c=1
+        # 多頭收線
         if (close > open and a!=1) or b==1:
-            #print("多頭收線")
             d=1
+        # 空頭收線
         if (close < open and b!=1) or a==1:
-            #print("空頭收線")
             e=1
+        # 適合做空
         if ((a==1 or e==1) and c==0):
-            #print("做空")
             trendType.append("空頭")
             return 0
+        # 適合做多
         if ((b==1 or d==1) and c==0):
-            #print("做多")
             trendType.append("多頭")
             return 1
+        # 十字線
         if(c==1):
             trendType.append("十字線")
             return None
     except:
         print("檢測多空頭錯誤")
 
-def calcPowerUp(volume): #計算多頭量能
+# 計算多頭量能
+def calcPowerUp(volume):
     try:
         if volume!=None:
             bullK.append(volume)
@@ -232,7 +247,7 @@ def calcPowerUp(volume): #計算多頭量能
             UPtotal=0
             if len(bullK) != 0:
                 while x<len(bullK):
-                    if bullK[x]>=ipk.np.average(bullK): #求大於KK平均得值
+                    if bullK[x]>=ipk.np.average(bullK): #求大於 bullK 平均的值
                         UPtotal=UPtotal+bullK[x]
                         t+=1
                     x+=1
@@ -246,7 +261,8 @@ def calcPowerUp(volume): #計算多頭量能
     except:
         print("計算多頭量能錯誤")
 
-def calcPowerDown(volume): #計算空頭量能
+# 計算空頭量能
+def calcPowerDown(volume): 
     try:
         if volume!=None:
             bearK.append(volume)
@@ -272,7 +288,8 @@ def calcPowerDown(volume): #計算空頭量能
     except:
         print("計算空頭量能錯誤")
 
-def compare(UP,DOWN): #比較多空權勢
+# 比較多空權勢
+def compare(UP,DOWN): 
     try:
         if UP > ((DOWN*0.2)+DOWN):
             print("多頭強勢")
@@ -289,6 +306,7 @@ def compare(UP,DOWN): #比較多空權勢
     except:
         print("比較多空權勢錯誤")
 
+# 計算百分位數
 def calcPercentiles(com):
     if com==1:
         arry = ipk.np.array([sorted(klineLow)[0],calcPosition(sorted(klineLow)[0])])
@@ -305,7 +323,8 @@ def calcPercentiles(com):
             W=int(ipk.np.percentile(arry,FIV[x])*10000)/10000
             recommendedPosition.append(W)
 
-def calcPosition(EX): #計算點位
+# 計算點位
+def calcPosition(EX):
     try:
         H=sorted(klineClose) #排列Close資料由小到大
         Percentile = ipk.np.percentile(H,[0,25,50,75,100])  
@@ -321,6 +340,7 @@ def calcPosition(EX): #計算點位
     except:
         print("計算點位錯誤")
 
+# 清除 list 內的資料
 def dataClear():
     recommendedPosition.clear()
     recommendedTime.clear()
