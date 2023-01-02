@@ -40,14 +40,14 @@ def predict(ID):
         x=0
         while x<180:
             while True:
-                if saveData(klineStatus(Wtime()-se,ID))==1:
+                if saveData(klineStatus(utcToTimestamp()-se,ID))==1:
                     break
             se+=14400
             ipk.time.sleep(0.02)
             x+=1
-        AAA()
-        calcPercentiles(compare(powerUP(None),powerDOWN(None)))
-        Variation(openTime,klineOpen,klineClose)
+        calcAverage()
+        calcPercentiles(compare(calcPowerUp(None),calcPowerDown(None)))
+        variation(openTime,klineOpen,klineClose)
         return 1
     except:
         return 0
@@ -105,16 +105,16 @@ def backTestKline(T): #回推K線
     try:
         x=0
         while x < T:
-            amount=abc(klineOpen[x],klineHigh[x],klineLow[x],klineClose[x])
+            amount=checkTrend(klineOpen[x],klineHigh[x],klineLow[x],klineClose[x])
             if amount==1:
-                powerUP(volume[x])
+                calcPowerUp(volume[x])
             if amount==0:
-                powerDOWN(volume[x])
+                calcPowerDown(volume[x])
             x+=1
     except:
         print("回推K線錯誤")
 
-def AAA(): #計算每六根K線的平均
+def calcAverage(): #計算每六根K線的平均
     try:
         averagePrice = []
         for i in range(0, len(volume), 6):
@@ -132,7 +132,7 @@ def AAA(): #計算每六根K線的平均
     except:
         print("計算六根平均K線錯誤")
 
-def Variation(openTime,open,close): #計算時間線
+def variation(openTime,open,close): #計算時間線
     try:
         difference=[]
         timerange=[]
@@ -151,13 +151,13 @@ def Variation(openTime,open,close): #計算時間線
         for t in R:
             futuretime.append(TR*t/100)
         for x in range(0,7):
-            print(Ktime(MAX1+(int(futuretime[x]/14400)*14400)+28800),"\t",R[x],"%")
-            W=Ktime(MAX1+(int(futuretime[x]/14400)*14400)+28800)
+            print(timestampToUtc(MAX1+(int(futuretime[x]/14400)*14400)+28800),"\t",R[x],"%")
+            W=timestampToUtc(MAX1+(int(futuretime[x]/14400)*14400)+28800)
             recommendedTime.append(W)
     except:
         print("計算時間線錯誤")
 
-def Wtime(): #換算UTC為秒
+def utcToTimestamp(): #換算UTC為秒
     try:
         tz = ipk.timezone( 'Europe/London' )   #設置時區為UTC+0
         timeString  =  ipk.datetime.datetime.now(tz).strftime( "%Y-%m-%d %H:%M:%S" )
@@ -167,7 +167,7 @@ def Wtime(): #換算UTC為秒
     except:
         print("換算UTC為秒錯誤")
 
-def Ktime(time_stamp): #換算秒為UTC
+def timestampToUtc(time_stamp): #換算秒為UTC
     try:
         struct_time=ipk.time.localtime(time_stamp)
         timeString =ipk.time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
@@ -175,7 +175,7 @@ def Ktime(time_stamp): #換算秒為UTC
     except:
         print("換算秒為UTC錯誤")
 
-def abc(open,high,low,close): #檢測多空頭
+def checkTrend(open,high,low,close): #檢測多空頭
     try:
         a=0
         b=0
@@ -221,7 +221,7 @@ def abc(open,high,low,close): #檢測多空頭
     except:
         print("檢測多空頭錯誤")
 
-def powerUP(volume): #計算多頭量能
+def calcPowerUp(volume): #計算多頭量能
     try:
         if volume!=None:
             bullK.append(volume)
@@ -246,7 +246,7 @@ def powerUP(volume): #計算多頭量能
     except:
         print("計算多頭量能錯誤")
 
-def powerDOWN(volume): #計算空頭量能
+def calcPowerDown(volume): #計算空頭量能
     try:
         if volume!=None:
             bearK.append(volume)
@@ -291,21 +291,21 @@ def compare(UP,DOWN): #比較多空權勢
 
 def calcPercentiles(com):
     if com==1:
-        arry = ipk.np.array([sorted(klineLow)[0],re(sorted(klineLow)[0])])
+        arry = ipk.np.array([sorted(klineLow)[0],calcPosition(sorted(klineLow)[0])])
         FIV=[0,23.6,38.2,50,61.8,78.6,100]
         for x in range(0,7):
             print(int(ipk.np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
             W=int(ipk.np.percentile(arry,FIV[x])*10000)/10000
             recommendedPosition.append(W)
     if com==0:
-        arry = ipk.np.array([re(sorted(klineHigh,reverse=True)[0]),sorted(klineHigh,reverse=True)[0]])
+        arry = ipk.np.array([calcPosition(sorted(klineHigh,reverse=True)[0]),sorted(klineHigh,reverse=True)[0]])
         FIV=[100,78.6,61.8,50,38.2,23.6,0]
         for x in range(0,7):
             print(int(ipk.np.percentile(arry,FIV[x])*10000)/10000,"\t\t",FIV[x],"%")
             W=int(ipk.np.percentile(arry,FIV[x])*10000)/10000
             recommendedPosition.append(W)
 
-def re(EX): #計算點位
+def calcPosition(EX): #計算點位
     try:
         H=sorted(klineClose) #排列Close資料由小到大
         Percentile = ipk.np.percentile(H,[0,25,50,75,100])  
