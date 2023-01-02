@@ -44,7 +44,7 @@ async def on_message(message):
         if  result == 1 :
             embed=discord.Embed(title=ID+"預測結果",color=0x7ceefd)
             embed.add_field(name="多空權勢", value=kline.trendPower[0], inline=False)
-            if kline.Compare(kline.powerUP(None),kline.powerDOWN(None)) != None:
+            if kline.compare(kline.calcPowerUp(None),kline.calcPowerDown(None)) != None:
                 embed.add_field(name="------------------------------------------------------------------------", value="建議開單點位", inline=False)
                 embed.add_field(name=kline.fibonacciText[0], value=kline.recommendedPosition[0], inline=True)
                 embed.add_field(name=kline.fibonacciText[1], value=kline.recommendedPosition[1], inline=True)
