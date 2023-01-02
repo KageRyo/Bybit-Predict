@@ -101,7 +101,7 @@ def saveData(Kline):#存取K線資料
         print("儲存K線資料錯誤")
         return 0
 
-def PB(T): #回推K線
+def backTestKline(T): #回推K線
     try:
         x=0
         while x < T:
@@ -128,7 +128,7 @@ def AAA(): #計算每六根K線的平均
 
         initial_trend_length = len(trendMarker) - len(trendMarker[trendMarker[0]:])
         print(initial_trend_length)
-        PB(initial_trend_length * 6)
+        backTestKline(initial_trend_length * 6)
     except:
         print("計算六根平均K線錯誤")
 
