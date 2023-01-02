@@ -40,7 +40,7 @@ def predict(ID):
         x=0
         while x<180:
             while True:
-                if savedata(KLineStatus(Wtime()-se,ID))==1:
+                if savedata(klineStatus(Wtime()-se,ID))==1:
                     break
             se+=14400
             ipk.time.sleep(0.02)
@@ -52,7 +52,7 @@ def predict(ID):
     except:
         return 0
 
-def KLineStatus(times,Name): #呼叫實盤K線數據
+def klineStatus(times,Name): #呼叫實盤K線數據
     try:
         session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
             # 如果您希望使用測試網請記得更改endpoint的連結
@@ -85,7 +85,7 @@ def KLineStatus(times,Name): #呼叫實盤K線數據
     except:
         print("請求K線錯誤")
         ipk.time.sleep(3)
-        KLineStatus(times,Name)
+        klineStatus(times,Name)
 
 def NKLineStatus(Name):
     pass
