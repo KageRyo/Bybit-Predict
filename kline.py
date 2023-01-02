@@ -40,7 +40,7 @@ def predict(ID):
         x=0
         while x<180:
             while True:
-                if savedata(klineStatus(Wtime()-se,ID))==1:
+                if saveData(klineStatus(Wtime()-se,ID))==1:
                     break
             se+=14400
             ipk.time.sleep(0.02)
@@ -87,7 +87,7 @@ def klineStatus(times,coin): #呼叫實盤K線數據
         ipk.time.sleep(3)
         klineStatus(times,coin)
 
-def savedata(Kline):#存取K線資料
+def saveData(Kline):#存取K線資料
     try:
         print(Kline)
         openTime.append(Kline[0]) 
