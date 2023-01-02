@@ -87,9 +87,6 @@ def klineStatus(times,Name): #呼叫實盤K線數據
         ipk.time.sleep(3)
         klineStatus(times,Name)
 
-def NKLineStatus(Name):
-    pass
-
 def savedata(Kline):#存取K線資料
     try:
         print(Kline)
