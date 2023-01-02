@@ -46,7 +46,7 @@ def predict(ID):
             ipk.time.sleep(0.02)
             x+=1
         AAA()
-        calcPercentiles(Compare(powerUP(None),powerDOWN(None)))
+        calcPercentiles(compare(powerUP(None),powerDOWN(None)))
         Variation(openTime,klineOpen,klineClose)
         return 1
     except:
@@ -275,7 +275,7 @@ def powerDOWN(volume): #計算空頭量能
     except:
         print("計算空頭量能錯誤")
 
-def Compare(UP,DOWN): #比較多空權勢
+def compare(UP,DOWN): #比較多空權勢
     try:
         if UP > ((DOWN*0.2)+DOWN):
             print("多頭強勢")
