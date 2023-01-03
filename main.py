@@ -17,8 +17,10 @@ with open("config.json") as f:
     config=json.load(f)
     token=config['discord_bot_token']
     channelID=int(config['discord_channel_id'])
-bot = discord.Client(intents=intents)
 
+# Discord 機器人變數設置
+bot = discord.Client(intents=intents)
+    
 # Discord 機器人狀態設置
 @bot.event
 async def on_ready():
