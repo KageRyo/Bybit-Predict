@@ -192,22 +192,22 @@ def checkTrend(open,high,low,close):
         c=0
         d=0
         e=0
-
+        # 如果收盤價大於開盤價
         if close > open:
+            # 長上引線
             if abs(high-close)>abs((open-close)*4):
-                #print("長上引線")
                 a=1
+            # 長下引線
             if abs(open-low)>abs((open-close)*4):
-                #print("長下引線")
                 b=1
+        # 如果收盤價小於開盤價
         if close < open:
             if abs(high-open)>abs((open-close)*4):
-                #print("長上引線")
+                # 長上引線
                 a=1
             if abs(close-low)>abs((open-close)*4):
-                #print("長下引線")
+                # 長下引線
                 b=1
-
         # 不良標的會出現的狀況
         if (open == high) and (high == low) and (low == close):
             c=1
