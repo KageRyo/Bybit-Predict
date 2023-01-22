@@ -51,7 +51,8 @@ def predict(ID):
         calcPercentiles(compare(calcPowerUp(None),calcPowerDown(None)))
         variation(openTime,klineOpen,klineClose)
         return 1
-    except:
+    except Exception as e:
+        print(e)
         return 0
 
 # 呼叫實盤 K 線數據
@@ -81,11 +82,14 @@ def klineStatus(times,coin):
                 for i in Kline_data: 
                     Kline.append(data[0][i])  #Kline=[open_time,volume,open,high,low,close]
                 return Kline
-            except:
+            except Exception as e:
+                print(e)
                 print("拆解data.json資料錯誤")
-        except:
+        except Exception as e:
+            print(e)
             print("建立data.json錯誤")
-    except:
+    except Exception as e:
+        print(e)
         print("請求K線錯誤")
         ipk.time.sleep(3)
         klineStatus(times,coin)
@@ -101,7 +105,8 @@ def saveData(Kline):
         klineLow.append(Kline[4])
         klineClose.append(Kline[5])
         return 1
-    except:
+    except Exception as e:
+        print(e)
         print("儲存K線資料錯誤")
         return 0
 
@@ -116,7 +121,8 @@ def backTestKline(T):
             if amount==0:
                 calcPowerDown(volume[x])
             x+=1
-    except:
+    except Exception as e:
+        print(e)
         print("回推K線錯誤")
 
 # 計算每六根 K 線的平均
@@ -135,7 +141,8 @@ def calcAverage():
         initial_trend_length = len(trendMarker) - len(trendMarker[trendMarker[0]:])
         print(initial_trend_length)
         backTestKline(initial_trend_length * 6)
-    except:
+    except Exception as e:
+        print(e)
         print("計算六根平均K線錯誤")
 
 # 計算時間線
@@ -161,7 +168,8 @@ def variation(openTime,open,close):
             print(timestampToUtc(MAX1+(int(futuretime[x]/14400)*14400)+28800),"\t",R[x],"%")
             W=timestampToUtc(MAX1+(int(futuretime[x]/14400)*14400)+28800)
             recommendedTime.append(W)
-    except:
+    except Exception as e:
+        print(e)
         print("計算時間線錯誤")
 
 # 換算 UTC 為秒時間戳
@@ -172,7 +180,8 @@ def utcToTimestamp():
         struct_time = ipk.time.strptime(timeString, "%Y-%m-%d %H:%M:%S")
         time_stamp = int(ipk.time.mktime(struct_time))
         return time_stamp
-    except:
+    except Exception as e:
+        print(e)
         print("換算UTC為秒錯誤")
 
 # 換算秒時間戳為 UTC
@@ -181,7 +190,8 @@ def timestampToUtc(time_stamp):
         struct_time=ipk.time.localtime(time_stamp)
         timeString =ipk.time.strftime("%Y-%m-%d %H:%M:%S", struct_time)
         return timeString
-    except:
+    except Exception as e:
+        print(e)
         print("換算秒為UTC錯誤")
 
 # 檢測為多頭或空頭
@@ -232,7 +242,8 @@ def checkTrend(open,high,low,close):
         if(c==1):
             trendType.append("十字線")
             return None
-    except:
+    except Exception as e:
+        print(e)
         print("檢測多空頭錯誤")
 
 # 計算多頭量能
@@ -258,7 +269,8 @@ def calcPowerUp(volume):
                     return UPaverage
             else:
                 return 0
-    except:
+    except Exception as e:
+        print(e)
         print("計算多頭量能錯誤")
 
 # 計算空頭量能
@@ -285,7 +297,8 @@ def calcPowerDown(volume):
                     return DOWNaverage
             else:
                 return 0
-    except:
+    except Exception as e:
+        print(e)
         print("計算空頭量能錯誤")
 
 # 比較多空權勢
@@ -303,7 +316,8 @@ def compare(UP,DOWN):
             print("多空均衡")
             trendPower.append("多空均衡")
             return None
-    except:
+    except Exception as e:
+        print(e)
         print("比較多空權勢錯誤")
 
 # 計算百分位數
@@ -337,7 +351,8 @@ def calcPosition(EX):
             return (EX-range)
         if EX == sorted(klineLow)[0]:
             return (EX+range)
-    except:
+    except Exception as e:
+        print(e)
         print("計算點位錯誤")
 
 # 清除 list 內的資料
