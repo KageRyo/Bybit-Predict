@@ -37,10 +37,9 @@ pip install bybit
 python main.py
 ````
 
-
 ## 語言支援
 
-SVGConverter 支援以下語言：
+Bybit-Predict 支援以下語言：
 - 繁體中文（正體中文）
 - 歡迎貢獻 :D
 
