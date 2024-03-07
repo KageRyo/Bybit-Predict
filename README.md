@@ -52,5 +52,5 @@ Bybit-Predict 支援以下語言：
 本程式採用 GPL-2.0 license 授權 - 有關詳細信息，請參閱 [LICENSE](LICENSE) 文件。  
 有任何疑問請洽 hello@coderyo.com
   
-${{\color{red}{\textsf{基金投資有風險，本團隊軟體程式僅提供參考意見。}}}}\$
+${{\color{red}{\textsf{任何投資均具有一定風險，本團隊軟體程式僅提供參考意見。}}}}\$  
 ${{\color{red}{\textsf{本團隊不擔保使用者之投資資金管理或運用績效，投資人應自負盈虧。}}}}\$
