@@ -1,3 +1,2 @@
-__pycache__
-config.json
-data.json
+src/config.json
+data/data.json
