@@ -31,12 +31,6 @@ retracementText = ['138.2%', '150%', '161.8%',
 fibonacciText = ['0%', '23.6%', '38.2%', '50%',
                  '61.8%', '78.6%', '100%']           # 斐波那契比例
 
-# 讀取 config.json 的設定檔案
-with open("src\config.json") as f:
-    config = ipk.json.load(f)
-    APIK = config['bybit_api_key']
-    APIS = config['bybit_api_secret']
-
 # 用於呼叫各方法的主要程式
 def predict(ID):
     try:
@@ -59,40 +53,43 @@ def predict(ID):
         return 0
 
 # 呼叫實盤 K 線數據
-def klineStatus(times, coin):
+def klineStatus(times, coin, max_retries=3):
     try:
         # 請求K線數據
         session = ipk.HTTP(testnet=False)  # 如果您希望使用測試網請從這裡更改
-        kline_data = session.get_kline(
-            symbol=str(coin),
-            interval=240,  # 抓取240分線(四小時)
-            limit=1,  # 抓取一個K線數據
-            start=times  # 從指定時間開始
-        )
-        print(times)
-        print(kline_data)
-        try:
-            with open("data\data.json", "w") as f:
-                ipk.json.dump(kline_data, f, indent=2)
-            with open('data\data.json') as f:
-                data = ipk.json.load(f)
-                data = data["result"]["list"][0]
+        retry = 0
+        while retry < max_retries:
             try:
-                Kline_data = ["open_time", "open",
-                              "high", "low", "close", "volume"]
-                Kline = [data[i] for i in range(len(Kline_data))]
-                return Kline
+                kline_data = session.get_kline(
+                    symbol=str(coin),
+                    interval=240,  # 抓取240分線(四小時)
+                    limit=1,  # 抓取一個K線數據
+                    start=times  # 從指定時間開始
+                )
+                break  # 如果獲取成功,則跳出重試循環
             except Exception as e:
-                print(e)
-                print("拆解data.json資料錯誤")
-        except Exception as e:
-            print(e)
-            print("建立data.json錯誤")
+                retry += 1
+                print(f"第{retry}次重試: {e}")
+                ipk.time.sleep(3)  # 休眠3秒後重試
+        else:
+            # 如果重試次數超過上限,則返回錯誤
+            print("請求K線錯誤,已達最大重試次數")
+            return None
+
+        with open("data\data.json", "w") as f:
+            ipk.json.dump(kline_data, f, indent=2)
+        with open('data\data.json') as f:
+            data = ipk.json.load(f)
+            data = data["result"]["list"][0]
+
+        Kline_data = ["open_time", "open", "high", "low", "close", "volume"]
+        Kline = [data[i] for i in range(len(Kline_data))]
+        return Kline
+
     except Exception as e:
         print(e)
-        print("請求K線錯誤")
-        ipk.time.sleep(3)
-        klineStatus(times, coin)
+        print("拆解data.json資料錯誤")
+        return None
 
 # 存取 K 線資料
 def saveData(Kline):
