@@ -58,18 +58,15 @@ def predict(ID):
 # 呼叫實盤 K 線數據
 def klineStatus(times,coin): 
     try:
-        session_unauth = ipk.usdt_perpetual.HTTP( #抓取USDT永續合約資料
-            # 如果您希望使用測試網請記得更改endpoint的連結
-            endpoint="https://api.bybit.com",
-            api_key=APIK,
-            api_secret=APIS
-        )
-        data=session_unauth.query_kline( #請求K線資料
+        data = HTTP(testnet=True)
+        print(session.get_kline(
+            category="spot",    #指定為現貨數據
             symbol=str(coin),
             interval=240,       #抓取240分線(四小時)
-            limit=1,            #抓取一個K線數據
-            from_time=times     #抓取目標K線時間
-        )
+            start=times,
+            end=times,
+            limit=1,
+        ))
         try:
             with open("data.json","w") as f:
                 ipk.json.dump(data,f,indent=2)
@@ -77,10 +74,10 @@ def klineStatus(times,coin):
                 data=(ipk.json.load(f))
                 data=data["result"]
             try:
-                Kline_data=["open_time","volume","open","high","low","close"]
+                Kline_data=["open_time","open","high","low","close","volume"]
                 Kline=[]
                 for i in Kline_data: 
-                    Kline.append(data[0][i])  #Kline=[open_time,volume,open,high,low,close]
+                    Kline.append(data[0][i])  #Kline=[open_time,open,high,low,close,volume]
                 return Kline
             except Exception as e:
                 print(e)
@@ -99,11 +96,11 @@ def saveData(Kline):
     try:
         print(Kline)
         openTime.append(Kline[0]) 
-        volume.append(Kline[1])
-        klineOpen.append(Kline[2])
-        klineHigh.append(Kline[3])
-        klineLow.append(Kline[4])
-        klineClose.append(Kline[5])
+        klineOpen.append(Kline[1])
+        klineHigh.append(Kline[2])
+        klineLow.append(Kline[3])
+        klineClose.append(Kline[4])
+        volume.append(Kline[5])
         return 1
     except Exception as e:
         print(e)
