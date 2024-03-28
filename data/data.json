@@ -1,0 +1,25 @@
+{
+  "Your kline data will be output here after you run the bot successful."
+  
+  "ret_code": ,
+  "ret_msg": "",
+  "ext_code": "",
+  "ext_info": "",
+  "result": [
+    {
+      "id": ,
+      "symbol": "",
+      "period": "",
+      "interval": "",
+      "start_at": ,
+      "open_time": ,
+      "volume": ,
+      "open": ,
+      "high": ,
+      "low": ,
+      "close": ,
+      "turnover": 
+    }
+  ],
+  "time_now": ""
+}
