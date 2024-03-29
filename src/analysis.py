@@ -95,12 +95,12 @@ def klineStatus(times, coin, max_retries=180):
 def saveData(Kline):
     try:
         print(Kline)
-        openTime.append(Kline[0])
-        volume.append(Kline[1])
-        klineOpen.append(Kline[2])
-        klineHigh.append(Kline[3])
-        klineLow.append(Kline[4])
-        klineClose.append(Kline[5])
+        openTime.append(int(Kline[0]))
+        klineOpen.append(float(Kline[1]))
+        klineHigh.append(float(Kline[2]))
+        klineLow.append(float(Kline[3]))
+        klineClose.append(float(Kline[4]))
+        volume.append(float(Kline[5]))
         return 1
     except Exception as e:
         print(e)
@@ -155,18 +155,18 @@ def variation(openTime, open, close):
         max = map(difference.index, ipk.hq.nlargest(2, difference))
         for x in list(max):
             timerange.append(openTime[x])
-        if int(timerange[0]) > int(timerange[1]):
+        if timerange[0] > timerange[1]:
             MAX1 = timerange[0]
         else:
             MAX1 = timerange[1]
-        TR = abs(int(timerange[0])-int(timerange[1]))
+        TR = abs(timerange[0]-timerange[1])
         R = [138.2, 150, 161.8, 200, 238.2, 261.8, 300]
         for t in R:
             futuretime.append(TR*t/100)
         for x in range(0, 7):
             print(timestampToUtc(
-                int(MAX1)+(int(futuretime[x]/14400000)*14400000)+28800000), "\t", R[x], "%")
-            W = timestampToUtc(int(MAX1)+(int(futuretime[x]/14400000)*14400000)+28800000)
+                MAX1+(int(futuretime[x]/14400000)*14400000)+28800000), "\t", R[x], "%")
+            W = timestampToUtc(MAX1+(int(futuretime[x]/14400000)*14400000)+28800000)
             recommendedTime.append(W)
     except Exception as e:
         print(e)
@@ -187,7 +187,7 @@ def utcToTimestamp():
 # 換算毫秒時間戳為 UTC
 def timestampToUtc(time_stamp):
     try:
-        struct_time = ipk.datetime.datetime.fromtimestamp(time_stamp/1000, ipk.timezone('Europe/London'))
+        struct_time = ipk.datetime.datetime.fromtimestamp(time_stamp/1000, tz=None)
         timeString = struct_time.strftime("%Y-%m-%d %H:%M:%S")
         return timeString
     except Exception as e:
