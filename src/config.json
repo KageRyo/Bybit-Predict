@@ -1,7 +1,4 @@
 {
-    "bybit_api_key": "Keyin your bybit_api_key here.",
-    "bybit_api_secret": "Keyin your bybit_api_secret here.",
-    
     "discord_bot_token":"Keyin your discord_bot_token here.",
     "discord_channel_id":"Keyin the discord_channel_id you want to use for this bot."
 }
