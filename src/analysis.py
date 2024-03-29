@@ -41,7 +41,7 @@ def predict(ID):
                 time = utcToTimestamp()-se
                 if saveData(klineStatus(time, ID)) == 1:
                     break
-            se += 14400
+            se += 14400000
             ipk.time.sleep(0.02)
             x += 1
         calcAverage()
@@ -53,7 +53,7 @@ def predict(ID):
         return 0
 
 # 呼叫實盤 K 線數據
-def klineStatus(times, coin, max_retries=3):
+def klineStatus(times, coin, max_retries=180):
     try:
         # 請求K線數據
         session = ipk.HTTP(testnet=False)  # 如果您希望使用測試網請從這裡更改
@@ -137,8 +137,7 @@ def calcAverage():
 
         trendMarker = [1 if ratio > 0 else 0 for ratio in priceRatio]
 
-        initial_trend_length = len(trendMarker) - \
-            len(trendMarker[trendMarker[0]:])
+        initial_trend_length = len(trendMarker) - len(trendMarker[trendMarker[0]:])
         print(initial_trend_length)
         backTestKline(initial_trend_length * 6)
     except Exception as e:
@@ -152,22 +151,22 @@ def variation(openTime, open, close):
         timerange = []
         futuretime = []
         for x in range(42):
-            difference.append(abs(open[x]-close[x]))
+            difference.append(abs(float(open[x])-float(close[x])))
         max = map(difference.index, ipk.hq.nlargest(2, difference))
         for x in list(max):
             timerange.append(openTime[x])
-        if timerange[0] > timerange[1]:
+        if int(timerange[0]) > int(timerange[1]):
             MAX1 = timerange[0]
         else:
             MAX1 = timerange[1]
-        TR = abs(timerange[0]-timerange[1])
+        TR = abs(int(timerange[0])-int(timerange[1]))
         R = [138.2, 150, 161.8, 200, 238.2, 261.8, 300]
         for t in R:
             futuretime.append(TR*t/100)
         for x in range(0, 7):
             print(timestampToUtc(
-                MAX1+(int(futuretime[x]/14400)*14400)+28800), "\t", R[x], "%")
-            W = timestampToUtc(MAX1+(int(futuretime[x]/14400)*14400)+28800)
+                int(MAX1)+(int(futuretime[x]/14400000)*14400000)+28800000), "\t", R[x], "%")
+            W = timestampToUtc(int(MAX1)+(int(futuretime[x]/14400000)*14400000)+28800000)
             recommendedTime.append(W)
     except Exception as e:
         print(e)
@@ -188,7 +187,7 @@ def utcToTimestamp():
 # 換算毫秒時間戳為 UTC
 def timestampToUtc(time_stamp):
     try:
-        struct_time = ipk.datetime.datetime.utcfromtimestamp(time_stamp / 1000)
+        struct_time = ipk.datetime.datetime.fromtimestamp(time_stamp/1000, ipk.timezone('Europe/London'))
         timeString = struct_time.strftime("%Y-%m-%d %H:%M:%S")
         return timeString
     except Exception as e:
