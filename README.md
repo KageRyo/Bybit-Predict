@@ -11,7 +11,6 @@ Predict cryptocurrency trends using Python and the Bybit exchange API
 ## 安裝
 
 要使用 Bybit-Predict，您需要在系統上安裝 Python。 將此儲存庫 Clone 到您的電腦：
-
 ````
 git clone https://github.com/kageryo/Bybit-Predict.git
 ````
@@ -25,17 +24,19 @@ pip install discord
 pip install numpy
 ````
 ````
-pip install bybit
+pip install pybit
 ````
 
 ## 用法
-1. 於 [config.json](config.json) 文件修改相關設定。
+1. 於 [config.json](src/config.json) 文件修改相關設定。
 2. 將您的 Discord 機器人加入您的伺服器，並給予權限。
 3. 執行 main.py 檔案來啟動程式：
 
 ````
 python main.py
 ````
+
+- 此外，您必須先於 [Discord Developer Portal](https://discord.com/developers/applications) 建立您的機器人。  
 
 ## 語言支援
 
