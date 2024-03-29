@@ -30,7 +30,7 @@ def main():
 @bot.event
 async def on_ready():
     print('目前登入身份：',bot.user)
-    game = discord.Game('預測機器人')
+    game = discord.Game('Bybit-Predict by.CodeRyo')
     # discord.Status.<狀態>，可以是online,offline,idle,dnd,invisible
     await bot.change_presence(status=discord.Status.online, activity=game)
 
