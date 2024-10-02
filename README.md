@@ -2,6 +2,8 @@
 使用 Python 和 Bybit 交易所 API 預測加密貨幣趨勢  
 Predict cryptocurrency trends using Python and the Bybit exchange API
 
+https://github.com/user-attachments/assets/8099b11d-33e8-4ad7-afbc-e6db66e67506
+
 ## 特色
 
 - 預測加密貨幣趨勢
