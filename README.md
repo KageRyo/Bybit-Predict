@@ -1,59 +1,105 @@
 # Bybit-Predict
-使用 Python 和 Bybit 交易所 API 預測加密貨幣趨勢  
-Predict cryptocurrency trends using Python and the Bybit exchange API
 
-https://github.com/user-attachments/assets/8099b11d-33e8-4ad7-afbc-e6db66e67506
+![Bybit-Predict](https://img.shields.io/badge/License-GPL--2.0-blue.svg)  
+Predict cryptocurrency price trends using Python and the Bybit exchange API.
 
-## 特色
+## Overview
 
-- 預測加密貨幣趨勢
-- 結合 Discord 方便使用
-- 無需上傳您的任何資料給予開發者
-  
-## 安裝
+Bybit-Predict is an open-source project designed to analyze and predict cryptocurrency price trends using the Bybit exchange API. Integrated with Discord for seamless user interaction, this tool provides a reference for market analysis while prioritizing user privacy by requiring no data uploads to developers.
 
-要使用 Bybit-Predict，您需要在系統上安裝 Python。 將此儲存庫 Clone 到您的電腦：
-````
-git clone https://github.com/kageryo/Bybit-Predict.git
-````
+> **⚠️ Disclaimer**: All investments carry inherent risks. This software provides reference insights only. The development team does not guarantee investment performance, and users are solely responsible for their financial decisions.
 
-安裝所需的函式庫：
+## Features
 
-````
-pip install discord
-````
-````
-pip install numpy
-````
-````
-pip install pybit
-````
+- **Trend Prediction**: Leverages Bybit API to forecast cryptocurrency price movements.
+- **Discord Integration**: Control and monitor predictions through a Discord bot.
+- **Privacy-Focused**: No personal data is shared with developers.
+- **Open Source**: Licensed under GPL-2.0, encouraging community contributions.
 
-## 用法
-1. 於 [config.json](src/config.json) 文件修改相關設定。
-2. 將您的 Discord 機器人加入您的伺服器，並給予權限。
-3. 執行 main.py 檔案來啟動程式：
+## Table of Contents
 
-````
-python main.py
-````
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Supported Languages](#supported-languages)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+- [Disclaimer](#disclaimer)
 
-- 此外，您必須先於 [Discord Developer Portal](https://discord.com/developers/applications) 建立您的機器人。  
+## Installation
 
-## 語言支援
+### Prerequisites
+- Python 3.8 or higher
+- Git
+- A Bybit account with API keys
+- A Discord bot token
 
-Bybit-Predict 支援以下語言：
-- 繁體中文（正體中文）
-- 歡迎貢獻 :D
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/KageRyo/Bybit-Predict.git
+   cd Bybit-Predict
+   ```
 
-## 貢獻
+2. Install required dependencies:
+   ```bash
+   pip install discord
+   pip install numpy
+   pip install pybit
+   ```
 
-歡迎貢獻！ 如果您發現任何錯誤或有改進建議，歡迎提出 Issues 或 Pull Requests。
+## Usage
 
-## LICENSE
+1. Configure the `config.json` file with your Bybit API keys and Discord bot token (see [Configuration](#configuration)).
+2. Add your Discord bot to your server and grant necessary permissions.
+3. Run the main script:
+   ```bash
+   python main.py
+   ```
 
-本程式採用 GPL-2.0 license 授權 - 有關詳細信息，請參閱 [LICENSE](LICENSE) 文件。  
-有任何疑問請洽 hello@coderyo.com
-  
-${{\color{red}{\textsf{任何投資均具有一定風險，本團隊軟體程式僅提供參考意見。}}}}\$  
-${{\color{red}{\textsf{本團隊不擔保使用者之投資資金管理或運用績效，投資人應自負盈虧。}}}}\$
+## Configuration
+
+Edit the `config.json` file to include:
+- **Bybit API Key and Secret**: Obtain from your Bybit account.
+- **Discord Bot Token**: Generate from the Discord Developer Portal.
+- **Other Settings**: Adjust prediction parameters or logging preferences as needed.
+
+Example `config.json`:
+```json
+{
+  "bybit_api_key": "YOUR_BYBIT_API_KEY",
+  "bybit_api_secret": "YOUR_BYBIT_API_SECRET",
+  "discord_bot_token": "YOUR_DISCORD_BOT_TOKEN"
+}
+```
+
+Refer to the Bybit API documentation and Discord Developer Portal for detailed setup instructions.
+
+## Supported Languages
+
+- Traditional Chinese (正體中文)
+- Contributions for additional languages are welcome!
+
+## Contributing
+
+We welcome contributions from the community! To contribute:
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/YourFeature`).
+3. Commit your changes (`git commit -m 'Add YourFeature'`).
+4. Push to the branch (`git push origin feature/YourFeature`).
+5. Open a Pull Request.
+
+Please report bugs or suggest improvements via [Issues](https://github.com/KageRyo/Bybit-Predict/issues).
+
+## License
+
+This project is licensed under the [GPL-2.0 License](LICENSE). See the LICENSE file for details.
+
+## Contact
+
+For questions or support, email: [hello@coderyo.com](mailto:hello@coderyo.com).
+
+## Disclaimer
+
+Investing in cryptocurrencies involves significant risks. This software is for informational purposes only and does not constitute financial advice. Users are responsible for their own investment decisions and outcomes.
