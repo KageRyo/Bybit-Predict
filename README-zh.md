@@ -5,7 +5,7 @@
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
 
-> **目前正式版本：v4.0.0。**這個 major release 在保留 repo、issues、外部貢獻、forks 與 Git history 的前提下完成現代化重構；前一個 legacy release 為 v3.1。
+> **目前正式版本：v4.1.0。**此版本在 v4 的現代化 package 架構上加入可重現的歷史 backtesting，同時保留 repo、issues、外部貢獻、forks 與 Git history；前一個 legacy release 為 v3.1。
 
 [English](README.md)
 
@@ -28,7 +28,7 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 - 提供 CLI，以及可選用、非阻塞的 Discord slash command。
 - 透過 Bybit instrument metadata 驗證有效交易對，不再 hard-code 幣種清單。
 - 具備測試、Ruff、Pyright、GitHub Actions CI 與 Dependabot。
-- 提供可重現的歷史 backtesting：可保存 CSV 輸入、明確列出假設、計算績效指標，並與兩個簡單 baseline 比較（v4.1.0 開發中）。
+- 提供可重現的歷史 backtesting：可保存 CSV 輸入、明確列出假設、計算績效指標，並與兩個簡單 baseline 比較。
 
 ## 系統需求
 
@@ -89,7 +89,7 @@ Reference levels:
 
 ### 歷史 Backtest
 
-v4.1.0 開發分支加入可重現的 `backtest` command：策略只會看到先前的固定已收線
+v4.1.0 加入可重現的 `backtest` command：策略只會看到先前的固定已收線
 K 線 window；非 neutral 訊號在下一根 K 線開盤模擬進場、同一根收盤模擬出場。輸出會
 連同假設、績效指標和 baseline 一起顯示，不是交易建議。
 
@@ -212,7 +212,7 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱
 ## Roadmap
 
 - **v4.0.0：**package 架構、公開 Bybit V5 client、stateless legacy strategy、CLI、Discord slash command、設定、品質 gate 與文件。
-- **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)，開發中）。
+- **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史

@@ -6,9 +6,10 @@
 **Rule-based cryptocurrency market analysis, signal generation, and Discord
 integration powered by public Bybit V5 market data.**
 
-> **Current release: v4.0.0.** This major release modernizes the project
-> without discarding its repository, issues, merged contributions, or Git
-> history. The latest legacy release was v3.1.
+> **Current release: v4.1.0.** This release adds reproducible historical
+> backtesting to v4's modern package architecture without discarding the
+> repository, issues, merged contributions, or Git history. The latest legacy
+> release was v3.1.
 
 [繁體中文](README-zh.md)
 
@@ -38,8 +39,7 @@ outcome.
   coin list.
 - Tests, Ruff, Pyright, GitHub Actions CI, and Dependabot.
 - Deterministic historical backtesting with saved CSV inputs, explicit
-  assumptions, performance metrics, and two simple baselines (in development
-  for the v4.1.0 release).
+  assumptions, performance metrics, and two simple baselines.
 
 ## Requirements
 
@@ -101,10 +101,10 @@ BTCUSDT`.
 
 ### Backtest a historical range
 
-The v4.1.0 development branch adds a reproducible `backtest` command. It
-signals from a trailing closed-candle window, executes non-neutral signals at
-the next candle open, and exits at that candle close. The command prints its
-assumptions with metrics and baselines; it does not make a trading claim.
+v4.1.0 adds a reproducible `backtest` command. It signals from a trailing
+closed-candle window, executes non-neutral signals at the next candle open,
+and exits at that candle close. The command prints its assumptions with metrics
+and baselines; it does not make a trading claim.
 
 ```bash
 bybit-predict backtest BTCUSDT \
@@ -239,7 +239,7 @@ Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
 - **v4.0.0:** package architecture, public Bybit V5 client, stateless legacy
   strategy, CLI, Discord slash command, configuration, quality gates, and
   documentation.
-- **v4.1.0:** reproducible backtesting and evaluation ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25), in development).
+- **v4.1.0:** reproducible backtesting and evaluation ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)).
 - **Later:** additional strategies may implement the same strategy contract;
   ML is a future option, not an implied feature.
 
