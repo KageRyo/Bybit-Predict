@@ -1,0 +1,75 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bybit-predict"
+version = "4.0.0a0"
+description = "Rule-based cryptocurrency market signal analysis using Bybit V5 market data."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-2.0-only" }
+authors = [
+  { name = "CodeRyo Studio" },
+  { name = "Chien-Hsun Chang" },
+]
+keywords = ["bybit", "cryptocurrency", "market-analysis", "signals", "discord"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "pybit>=5.10,<6",
+]
+
+[project.optional-dependencies]
+discord = [
+  "discord.py>=2.4,<3",
+]
+dev = [
+  "discord.py>=2.4,<3",
+  "pytest>=8.3,<10",
+  "pytest-cov>=5,<8",
+  "ruff>=0.8,<1",
+  "pyright>=1.1.390,<2",
+]
+
+[project.scripts]
+bybit-predict = "bybit_predict.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/KageRyo/Bybit-Predict"
+Issues = "https://github.com/KageRyo/Bybit-Predict/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bybit_predict"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --cov=bybit_predict --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["bybit_predict"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+reportMissingImports = "none"
