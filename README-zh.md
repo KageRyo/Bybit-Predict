@@ -5,7 +5,7 @@
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
 
-> **v4 正在開發中。**目前最新正式版為 v3.1；本分支在保留 repo、issues、外部貢獻、forks 與 Git history 的前提下進行現代化重構。
+> **目前正式版本：v4.0.0。**這個 major release 在保留 repo、issues、外部貢獻、forks 與 Git history 的前提下完成現代化重構；前一個 legacy release 為 v3.1。
 
 [English](README.md)
 

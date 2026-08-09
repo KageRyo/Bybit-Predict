@@ -6,9 +6,9 @@
 **Rule-based cryptocurrency market analysis, signal generation, and Discord
 integration powered by public Bybit V5 market data.**
 
-> **v4 is in development.** The latest released legacy version is v3.1. This
-> branch modernizes the project without discarding its repository, issues,
-> merged contributions, or Git history.
+> **Current release: v4.0.0.** This major release modernizes the project
+> without discarding its repository, issues, merged contributions, or Git
+> history. The latest legacy release was v3.1.
 
 [繁體中文](README-zh.md)
 
