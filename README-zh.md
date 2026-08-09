@@ -42,7 +42,7 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 
 ### 從 PyPI 安裝
 
-從 v4.1.1 開始會發布至 PyPI。該版本發布後，可安裝 CLI 與標準 Bybit V5 dependency：
+可透過 PyPI 安裝 CLI 與標準 Bybit V5 dependency：
 
 ```bash
 python -m pip install bybit-predict
@@ -243,7 +243,7 @@ GitHub Actions secrets 都不保存長效 PyPI API token。
 - **v4.0.0：**package 架構、公開 Bybit V5 client、stateless legacy strategy、CLI、Discord slash command、設定、品質 gate 與文件。
 - **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）。
 - **v4.1.1：**PyPI distribution、Trusted Publishing 與 package-release automation
-  （[#37](https://github.com/KageRyo/Bybit-Predict/issues/37)，開發中）。
+  （[#37](https://github.com/KageRyo/Bybit-Predict/issues/37)）。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史
