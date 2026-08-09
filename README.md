@@ -53,8 +53,7 @@ analysis. The optional Discord interface needs only a Discord bot token.
 
 ### From PyPI
 
-PyPI publishing begins with v4.1.1. After that release, install the CLI and its
-standard Bybit V5 dependency with:
+Install the CLI and its standard Bybit V5 dependency with:
 
 ```bash
 python -m pip install bybit-predict
@@ -273,7 +272,7 @@ its GitHub Actions secrets.
   documentation.
 - **v4.1.0:** reproducible backtesting and evaluation ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)).
 - **v4.1.1:** PyPI distribution, Trusted Publishing, and package-release
-  automation ([#37](https://github.com/KageRyo/Bybit-Predict/issues/37), in development).
+  automation ([#37](https://github.com/KageRyo/Bybit-Predict/issues/37)).
 - **Later:** additional strategies may implement the same strategy contract;
   ML is a future option, not an implied feature.
 
