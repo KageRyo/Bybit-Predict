@@ -1,9 +1,9 @@
 # PyPI publishing
 
-Bybit-Predict v4.1.1 introduces distribution validation and automated PyPI
-publishing. The workflow builds both an sdist and a universal wheel from a
-release tag, validates their metadata and rendered README, verifies the GPL
-license is packaged, and smoke-tests the installed wheel's console script.
+Bybit-Predict is distributed through PyPI. The workflow builds both an sdist
+and a universal wheel from each release tag, validates their metadata and
+rendered README, verifies the GPL license is packaged, and smoke-tests the
+installed wheel's console script.
 
 It follows this project's HalfRand release pattern: a final SemVer tag builds
 and validates the artifacts, publishes them through
@@ -15,8 +15,8 @@ used.
 
 ## One-time maintainer setup
 
-These steps require a verified PyPI account with permission to create a
-project. They cannot be completed from this repository alone.
+The first PyPI publication requires a verified PyPI account with permission to
+create a project. It cannot be completed from this repository alone.
 
 1. In GitHub repository settings, create a protected environment named `release`
    and require the release maintainer as an approver. The workflow separately
@@ -32,24 +32,25 @@ project. They cannot be completed from this repository alone.
    | Workflow filename | `release.yml` |
    | Environment name | `release` |
 
-A pending publisher does not reserve a PyPI project name. Publish promptly
-after configuring it; otherwise another account may claim the name first.
+Before the first publication, a pending publisher does not reserve a PyPI
+project name. Publish promptly after configuring it; otherwise another account
+may claim the name first.
 
 ## Release procedure
 
-1. Merge a release-preparation PR that changes the package version from its
-   alpha form (for example `4.1.1a0`) to the final version (`4.1.1`) and dates
-   the changelog entry. Confirm main CI is green.
-2. Create and push the annotated release tag (for example `v4.1.1`) at that
-   verified main commit. The publishing workflow rejects an untagged ref, a tag
-   that is not reachable from `main`, or a tag whose version differs from
-   `pyproject.toml`.
+1. Merge a release-preparation PR that sets the package and runtime versions to
+   the immutable final PEP 440 value (for example `4.1.2`), updates the version
+   test, and dates the changelog entry. Confirm main CI is green.
+2. Create and push the annotated release tag (`v<version>`, for example
+   `v4.1.2`) at that verified main commit. The publishing workflow rejects an
+   untagged ref, a tag that is not reachable from `main`, or a tag whose version
+   differs from `pyproject.toml`.
 3. Push the tag. The `release.yml` workflow verifies the tag is reachable from
    `main` and matches `pyproject.toml`, builds and validates the distributions,
    waits for the protected `release` environment approval, then publishes to
    PyPI. Only after that succeeds does it create the GitHub Release and attach
    the exact wheel and sdist.
-4. Verify `python -m pip install bybit-predict==4.1.1` from a fresh virtual
+4. Verify `python -m pip install bybit-predict==<version>` from a fresh virtual
    environment and run `bybit-predict --help`.
 
 Do not add PyPI API tokens to GitHub secrets. If a release must be stopped,

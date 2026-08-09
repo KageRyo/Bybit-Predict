@@ -5,6 +5,21 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [4.1.2] - 2026-08-09
+
+### Fixed
+
+- Corrected released-version labels in the English and 正體中文 README files.
+- Replaced stale future-release references in release and legacy migration
+  documentation.
+
+### Changed
+
+- PyPI metadata now describes the reproducible backtesting toolkit and includes
+  matching discovery keywords.
+- Labelled the Chinese documentation as 正體中文.
+- CLI help now names both market analysis and reproducible backtesting.
+
 ## [4.1.1] - 2026-08-09
 
 ### Added

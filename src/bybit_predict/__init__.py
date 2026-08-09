@@ -5,4 +5,4 @@
 from bybit_predict.models import Candle, PredictionResult, SignalTrend
 
 __all__ = ["Candle", "PredictionResult", "SignalTrend"]
-__version__ = "4.1.1"
+__version__ = "4.1.2"

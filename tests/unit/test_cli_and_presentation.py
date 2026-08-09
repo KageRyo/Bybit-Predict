@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from pathlib import Path
 
-from bybit_predict.cli import main
+from bybit_predict.cli import build_parser, main
 from bybit_predict.models import Candle
 from bybit_predict.presentation import format_result_text
 from bybit_predict.services.predictor import PredictionService
@@ -23,6 +23,12 @@ def test_cli_prints_shared_service_result(candles: tuple) -> None:
     )
 
     assert status == 0
+
+
+def test_cli_description_matches_the_analysis_and_backtesting_positioning() -> None:
+    description = build_parser().description
+    assert description is not None
+    assert "reproducible backtesting" in description
 
 
 def test_cli_rejects_limits_the_legacy_strategy_cannot_analyze(capsys: object) -> None:

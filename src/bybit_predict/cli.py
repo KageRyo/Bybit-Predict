@@ -29,7 +29,10 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser without starting any network client."""
     parser = argparse.ArgumentParser(
         prog="bybit-predict",
-        description="Rule-based cryptocurrency market analysis using public Bybit V5 data.",
+        description=(
+            "Rule-based cryptocurrency market analysis and reproducible backtesting "
+            "using public Bybit V5 data."
+        ),
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
     analyze = subcommands.add_parser("analyze", help="Analyze a Bybit trading symbol")

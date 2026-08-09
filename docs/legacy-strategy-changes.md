@@ -8,7 +8,7 @@ and time references. It is not an ML model.
 Version 4 is not a byte-for-byte replay of the v3 implementation. The changes
 below are intentional, documented bug fixes and are covered by regression
 tests. They make the strategy's output suitable for deterministic evaluation
-and the planned v4.1.0 backtesting work.
+and the reproducible backtesting introduced in v4.1.0.
 
 | Area | v3 behavior | v4 behavior | Reason |
 | --- | --- | --- | --- |

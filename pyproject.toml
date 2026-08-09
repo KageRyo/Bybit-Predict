@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bybit-predict"
-version = "4.1.1"
-description = "Rule-based cryptocurrency market signal analysis using Bybit V5 market data."
+version = "4.1.2"
+description = "Rule-based cryptocurrency market analysis and reproducible backtesting using Bybit V5 market data."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-2.0-or-later"
@@ -14,7 +14,15 @@ authors = [
   { name = "CodeRyo Studio" },
   { name = "Chien-Hsun Chang" },
 ]
-keywords = ["bybit", "cryptocurrency", "market-analysis", "signals", "discord"]
+keywords = [
+  "backtesting",
+  "bybit",
+  "cryptocurrency",
+  "discord",
+  "market-analysis",
+  "python-cli",
+  "signals",
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
