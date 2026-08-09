@@ -87,6 +87,53 @@ class BybitV5MarketClient:
             raise MarketDataError(f"Bybit returned no candles for {normalized_symbol}")
         return tuple(sorted(candles, key=lambda candle: candle.timestamp))
 
+    def get_historical_candles(
+        self, symbol: str, *, interval: str, start: datetime, end: datetime
+    ) -> tuple[Candle, ...]:
+        """Fetch an explicit UTC range, following Bybit's 1,000-candle pages.
+
+        Bybit returns each page newest-first. The next request moves its
+        inclusive end just before the oldest received candle, then normalized
+        results are de-duplicated and returned in chronological order.
+        """
+        normalized_symbol = self._normalize_symbol(symbol)
+        normalized_interval = self._validate_interval(interval)
+        self._validate_range(start, end)
+        start_ms = int(start.timestamp() * 1000)
+        page_end_ms = int(end.timestamp() * 1000) - 1
+        by_timestamp: dict[datetime, Candle] = {}
+
+        while page_end_ms >= start_ms:
+            response = self._request(
+                self._session.get_kline,
+                category=self._category,
+                symbol=normalized_symbol,
+                interval=normalized_interval,
+                start=start_ms,
+                end=page_end_ms,
+                limit=1000,
+            )
+            rows = self._result_list(response, endpoint="get_kline")
+            page = tuple(self._to_candle(row) for row in rows)
+            if not page:
+                break
+            for candle in page:
+                if start <= candle.timestamp < end:
+                    by_timestamp[candle.timestamp] = candle
+            oldest_ms = min(int(candle.timestamp.timestamp() * 1000) for candle in page)
+            if oldest_ms <= start_ms:
+                break
+            if oldest_ms >= page_end_ms:
+                raise MarketDataError("Bybit historical pagination did not advance")
+            page_end_ms = oldest_ms - 1
+
+        candles = tuple(sorted(by_timestamp.values(), key=lambda candle: candle.timestamp))
+        if not candles:
+            raise MarketDataError(
+                f"Bybit returned no candles for {normalized_symbol} in the requested date range"
+            )
+        return candles
+
     def is_valid_symbol(self, symbol: str) -> bool:
         """Check an individual symbol against Bybit's current instrument metadata."""
         normalized_symbol = self._normalize_symbol(symbol)
@@ -159,6 +206,17 @@ class BybitV5MarketClient:
             allowed = ", ".join(sorted(SUPPORTED_INTERVALS))
             raise ValueError(f"Unsupported Bybit interval {interval!r}. Expected one of: {allowed}")
         return normalized
+
+    @staticmethod
+    def _validate_range(start: datetime, end: datetime) -> None:
+        if start.tzinfo is None or start.utcoffset() is None:
+            raise ValueError("Historical start must be timezone-aware")
+        if end.tzinfo is None or end.utcoffset() is None:
+            raise ValueError("Historical end must be timezone-aware")
+        if start.utcoffset() != UTC.utcoffset(start) or end.utcoffset() != UTC.utcoffset(end):
+            raise ValueError("Historical dates must be in UTC")
+        if start >= end:
+            raise ValueError("Historical start must be before end")
 
     @staticmethod
     def _raise_for_api_error(response: Mapping[str, Any]) -> None:

@@ -12,7 +12,10 @@ from bybit_predict.models import Candle, PredictionResult
 class Strategy(Protocol):
     """A deterministic market-analysis strategy."""
 
-    name: str
+    @property
+    def name(self) -> str:
+        """A stable identifier for reports and backtest comparisons."""
+        ...
 
     def analyze(
         self, candles: tuple[Candle, ...], *, symbol: str, interval: str

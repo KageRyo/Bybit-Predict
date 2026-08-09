@@ -21,3 +21,7 @@ class SymbolNotFoundError(MarketDataError):
 
 class InsufficientDataError(BybitPredictError):
     """Raised when a strategy lacks enough candles for a valid analysis."""
+
+
+class BacktestError(BybitPredictError):
+    """Raised when backtest input or execution semantics are invalid."""
