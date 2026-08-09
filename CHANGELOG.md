@@ -5,7 +5,7 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
-## [4.1.0] - In development
+## [4.1.0] - 2026-08-09
 
 ### Added
 
