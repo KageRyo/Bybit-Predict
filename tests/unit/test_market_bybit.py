@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -79,6 +80,56 @@ def test_get_candles_rejects_bybit_api_error() -> None:
 
     with pytest.raises(MarketDataError, match="10001"):
         client.get_candles("BTCUSDT")
+
+
+def test_get_historical_candles_follows_reverse_ordered_pages() -> None:
+    session = FakeSession(
+        klines=[
+            {
+                "retCode": 0,
+                "result": {
+                    "list": [
+                        ["4000", "4", "5", "3", "4.5", "1"],
+                        ["3000", "3", "4", "2", "3.5", "1"],
+                    ]
+                },
+            },
+            {
+                "retCode": 0,
+                "result": {
+                    "list": [
+                        ["2000", "2", "3", "1", "2.5", "1"],
+                        ["1000", "1", "2", "0.5", "1.5", "1"],
+                    ]
+                },
+            },
+        ]
+    )
+    client = BybitV5MarketClient(session=session, sleep=lambda _: None)
+    start = datetime.fromtimestamp(1, tz=UTC)
+    end = datetime.fromtimestamp(5, tz=UTC)
+
+    candles = client.get_historical_candles("BTCUSDT", interval="240", start=start, end=end)
+
+    assert [candle.open for candle in candles] == [1.0, 2.0, 3.0, 4.0]
+    assert session.kline_calls == [
+        {
+            "category": "linear",
+            "symbol": "BTCUSDT",
+            "interval": "240",
+            "start": 1000,
+            "end": 4999,
+            "limit": 1000,
+        },
+        {
+            "category": "linear",
+            "symbol": "BTCUSDT",
+            "interval": "240",
+            "start": 1000,
+            "end": 2999,
+            "limit": 1000,
+        },
+    ]
 
 
 def test_symbol_validation_uses_bybit_instrument_metadata() -> None:

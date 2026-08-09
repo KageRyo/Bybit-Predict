@@ -28,6 +28,7 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 - 提供 CLI，以及可選用、非阻塞的 Discord slash command。
 - 透過 Bybit instrument metadata 驗證有效交易對，不再 hard-code 幣種清單。
 - 具備測試、Ruff、Pyright、GitHub Actions CI 與 Dependabot。
+- 提供可重現的歷史 backtesting：可保存 CSV 輸入、明確列出假設、計算績效指標，並與兩個簡單 baseline 比較（v4.1.0 開發中）。
 
 ## 系統需求
 
@@ -86,6 +87,38 @@ Reference levels:
 若 symbol、參數或市場資料有錯，CLI 會以非零 status code 結束。也可使用
 `python -m bybit_predict analyze BTCUSDT`。
 
+### 歷史 Backtest
+
+v4.1.0 開發分支加入可重現的 `backtest` command：策略只會看到先前的固定已收線
+K 線 window；非 neutral 訊號在下一根 K 線開盤模擬進場、同一根收盤模擬出場。輸出會
+連同假設、績效指標和 baseline 一起顯示，不是交易建議。
+
+```bash
+bybit-predict backtest BTCUSDT \
+  --interval 240 \
+  --start 2024-01-01 \
+  --end 2025-01-01 \
+  --strategy legacy \
+  --window 180 \
+  --save-data data/btcusdt-2024-4h.csv
+```
+
+要離線重跑相同的 normalized CSV 資料：
+
+```bash
+bybit-predict backtest BTCUSDT \
+  --interval 240 \
+  --start 2024-01-01 \
+  --end 2025-01-01 \
+  --strategy legacy \
+  --window 180 \
+  --data data/btcusdt-2024-4h.csv
+```
+
+`--start` 是包含起點、`--end` 是不包含終點；只輸入日期時代表 UTC 午夜。完整的
+metric 定義、baseline 語意、重現方式和重要限制請見
+[backtesting and evaluation](docs/backtesting.md)。
+
 ## Discord slash commands
 
 安裝 Discord optional dependency、建立 Discord application/bot，並以 `bot` 和
@@ -141,10 +174,15 @@ Bybit V5 public API
         │
 BybitV5MarketClient ──→ normalized UTC Candles
         │
-PredictionService ──→ LegacyRuleBasedStrategy ──→ PredictionResult
-        │                         │
-        ├──────── CLI             └── future strategies / v4.1 backtesting
-        └──────── Discord slash command
+        ├── PredictionService ──→ LegacyRuleBasedStrategy ──→ PredictionResult
+        │         │                         │
+        │         ├──────── CLI             └── future strategies
+        │         └──────── Discord slash command
+        │
+        └── BacktestEngine ─────→ LegacyRuleBasedStrategy ──→ BacktestResult
+                  │
+                  ├──────── historical CLI
+                  └──────── saved CSV input/output
 ```
 
 - `market/` 負責 Bybit V5 requests、retry 範圍、pagination 與 response normalization。
@@ -156,7 +194,7 @@ PredictionService ──→ LegacyRuleBasedStrategy ──→ PredictionResult
 
 `LegacyRuleBasedStrategy` 是刻意保留下來的歷史核心：它分類 K 線實體與影線、比較顯著多空量能，並從 IQR 和 percentile 算出選用的參考價位。明確命名策略後，未來新策略才能公平比較。v4 刻意修正 v3 的 zero/six-candle volume window、時間處理，以及 bearish Fibonacci label ordering；完整 compatibility baseline 與保留的語意請見 [legacy strategy migration notes](docs/legacy-strategy-changes.md)。
 
-預計在 **v4.1.0** 完成的 backtesting（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）會先定義 entry/exit semantics，再量測方向正確率、win rate、average return、maximum drawdown 與適當 baseline。在此之前，本專案不宣稱訊號具有任何已驗證的預測能力。
+**v4.1.0** 的 backtesting（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）先定義固定 trailing analysis window、下一根開盤進場、同根收盤出場，以及 neutral 訊號維持現金，再量測方向正確率、win rate、average return、maximum drawdown 與零 risk-free-rate Sharpe ratio；並與 buy-and-hold 和 10/20 SMA direction baseline 比較。確切規則與限制請見 [backtesting and evaluation](docs/backtesting.md)。在經過情境化的解讀前，本專案不宣稱訊號具有任何已驗證的預測能力。
 
 ## 開發與品質檢查
 
@@ -174,7 +212,7 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱
 ## Roadmap
 
 - **v4.0.0：**package 架構、公開 Bybit V5 client、stateless legacy strategy、CLI、Discord slash command、設定、品質 gate 與文件。
-- **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）。
+- **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)，開發中）。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史

@@ -5,7 +5,14 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [4.1.0] - In development
+
+### Added
+
+- Reproducible historical backtesting with explicit UTC ranges, saved normalized
+  candle CSV input, declared execution assumptions, performance metrics, and
+  buy-and-hold plus SMA direction baselines.
+- Historical Bybit V5 candle pagination for date-range evaluation.
 
 ## [4.0.0] - 2026-08-09
 
