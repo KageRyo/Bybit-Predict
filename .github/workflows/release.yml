@@ -59,7 +59,7 @@ jobs:
           .package-test-venv/bin/python -m pip install --no-deps dist/*.whl
           .package-test-venv/bin/python -c "from importlib.metadata import version; assert version('bybit-predict') == '${GITHUB_REF_NAME#v}'"
           .package-test-venv/bin/bybit-predict --help
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: python-package-distributions
           path: dist/
