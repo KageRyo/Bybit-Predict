@@ -21,6 +21,9 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - Public market analysis no longer requires Bybit API credentials.
 - Discord configuration now uses environment variables instead of a tracked JSON file.
+- `LegacyRuleBasedStrategy` intentionally uses the complete analysis window,
+  UTC time handling, and correctly aligned bearish Fibonacci labels. See
+  [legacy strategy migration notes](docs/legacy-strategy-changes.md).
 
 ## [3.1] - Legacy release
 

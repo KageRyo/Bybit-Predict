@@ -1,6 +1,6 @@
 # Bybit-Predict
 
-[![License: GPL-2.0-only](https://img.shields.io/badge/License-GPL--2.0--only-blue.svg)](LICENSE)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml/badge.svg)](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml)
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
@@ -154,7 +154,7 @@ PredictionService ──→ LegacyRuleBasedStrategy ──→ PredictionResult
 
 ## 策略與評估
 
-`LegacyRuleBasedStrategy` 是刻意保留下來的歷史核心：它分類 K 線實體與影線、比較顯著多空量能，並從 IQR 和 percentile 算出選用的參考價位。明確命名策略後，未來新策略才能公平比較。
+`LegacyRuleBasedStrategy` 是刻意保留下來的歷史核心：它分類 K 線實體與影線、比較顯著多空量能，並從 IQR 和 percentile 算出選用的參考價位。明確命名策略後，未來新策略才能公平比較。v4 刻意修正 v3 的 zero/six-candle volume window、時間處理，以及 bearish Fibonacci label ordering；完整 compatibility baseline 與保留的語意請見 [legacy strategy migration notes](docs/legacy-strategy-changes.md)。
 
 預計在 **v4.1.0** 完成的 backtesting（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）會先定義 entry/exit semantics，再量測方向正確率、win rate、average return、maximum drawdown 與適當 baseline。在此之前，本專案不宣稱訊號具有任何已驗證的預測能力。
 
@@ -183,7 +183,7 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱
 
 ## License 與著作權
 
-Bybit-Predict 採用 [GNU General Public License v2.0 only](LICENSE)。
+Bybit-Predict 採用 [GNU General Public License v2.0 or later](LICENSE)。
 
 Copyright © 2022–2026 **CodeRyo Studio**、**Chien-Hsun Chang** 與
 [contributors](CONTRIBUTORS.md)。CodeRyo Studio 是專案維護者；完整歸屬聲明請見

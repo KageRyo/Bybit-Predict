@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2022-2026 CodeRyo Studio, Chien-Hsun Chang, and contributors
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-2.0-or-later
 """Discord slash-command adapter.
 
 The module imports discord.py only when the optional interface is started, so

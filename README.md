@@ -1,6 +1,6 @@
 # Bybit-Predict
 
-[![License: GPL-2.0-only](https://img.shields.io/badge/License-GPL--2.0--only-blue.svg)](LICENSE)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml/badge.svg)](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml)
 
 **Rule-based cryptocurrency market analysis, signal generation, and Discord
@@ -172,7 +172,10 @@ PredictionService ──→ LegacyRuleBasedStrategy ──→ PredictionResult
 core. It classifies candle bodies and wicks, compares significant bullish and
 bearish volume, and derives optional reference prices from IQR and percentile
 calculations. It is explicitly named so later strategies can be compared
-fairly.
+fairly. v4 intentionally fixes v3's zero/six-candle volume window, timezone
+handling, and bearish Fibonacci label ordering; the exact compatibility
+baseline and retained semantics are documented in
+[legacy strategy migration notes](docs/legacy-strategy-changes.md).
 
 The planned **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) will define entry/exit semantics and measure directional accuracy, win rate, average return, maximum drawdown, and appropriate baselines. Until then, this project makes no quantitative claim that its signals predict future prices.
 
@@ -209,7 +212,7 @@ or read [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License and copyright
 
 Bybit-Predict is licensed under the
-[GNU General Public License v2.0 only](LICENSE).
+[GNU General Public License v2.0 or later](LICENSE).
 
 Copyright © 2022–2026 **CodeRyo Studio**, **Chien-Hsun Chang**, and
 [contributors](CONTRIBUTORS.md). CodeRyo Studio is the project maintainer. See

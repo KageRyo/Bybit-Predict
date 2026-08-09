@@ -60,5 +60,5 @@ behaviour changes, and explain the checks you ran in the PR description.
 ## License and attribution
 
 By contributing, you agree that your contribution is licensed under
-GPL-2.0-only. Retain existing copyright and SPDX notices. Your contribution is
+GPL-2.0-or-later. Retain existing copyright and SPDX notices. Your contribution is
 credited through Git history and the project contributors record.

@@ -1,9 +1,20 @@
 # SPDX-FileCopyrightText: 2022-2026 CodeRyo Studio, Chien-Hsun Chang, and contributors
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-2.0-or-later
 """The original candle, volume, percentile, and Fibonacci-inspired strategy.
 
-This module preserves the project's rule-based approach while making every
+This module preserves the intended rule-based semantics while making every
 calculation local to a single invocation. It is deliberately not an ML model.
+
+Version 4 intentionally fixes three observable v3 implementation defects:
+
+* v3 selected zero or six candles for volume power because of an erroneous
+  ``initial_trend_length`` slice; v4 evaluates the complete input window.
+* v3 mixed London/local timestamps with a fixed UTC+8 offset; v4 uses UTC.
+* v3 assigned ascending Fibonacci labels to descending bearish values; v4
+  keeps each label aligned with its displayed reference value.
+
+``v3_volume_window`` preserves the old selection calculation exclusively as a
+migration baseline. ``analyze`` must never call it.
 """
 
 from __future__ import annotations
@@ -45,7 +56,7 @@ class LegacyRuleBasedStrategy:
     def analyze(
         self, candles: tuple[Candle, ...], *, symbol: str, interval: str
     ) -> PredictionResult:
-        """Evaluate one chronological candle series without shared mutable state."""
+        """Evaluate the complete chronological candle window without shared state."""
         self._validate_candles(candles)
         classifications = tuple(self.classify_candle(candle) for candle in candles)
         bullish_volumes = tuple(
@@ -80,6 +91,35 @@ class LegacyRuleBasedStrategy:
             reference_levels=reference_levels,
             time_references=time_references,
         )
+
+    @staticmethod
+    def v3_volume_window(candles: tuple[Candle, ...]) -> tuple[Candle, ...]:
+        """Return the v3 ``calcAverage`` selection for migration regression tests.
+
+        The historical implementation created six-candle volume averages, then
+        used ``len(markers) - len(markers[markers[0]:])`` as a block count. Its
+        result is necessarily zero or one, so v3 sent zero or the first six
+        candles to ``backTestKline``. This compatibility helper is intentionally
+        not used by the v4 analysis path.
+        """
+        average_volumes = tuple(
+            fmean(candle.volume for candle in candles[index : index + 6])
+            for index in range(0, len(candles), 6)
+        )
+        if any(average_volumes[index] == 0 for index in range(2, len(average_volumes))):
+            return ()
+        markers = tuple(
+            1
+            if (fmean(average_volumes[index - 2 : index]) - average_volumes[index])
+            / average_volumes[index]
+            > 0
+            else 0
+            for index in range(2, len(average_volumes))
+        )
+        if not markers:
+            return ()
+        initial_trend_length = len(markers) - len(markers[markers[0] :])
+        return candles[: initial_trend_length * 6]
 
     @staticmethod
     def classify_candle(candle: Candle) -> CandleTrend:

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2022-2026 CodeRyo Studio, Chien-Hsun Chang, and contributors
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-2.0-or-later
 """Bybit V5 public market-data adapter.
 
 The client intentionally uses only public endpoints.  It never accepts or

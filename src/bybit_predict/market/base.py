@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2022-2026 CodeRyo Studio, Chien-Hsun Chang, and contributors
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-2.0-or-later
 """Interfaces that decouple strategy code from external market-data APIs."""
 
 from __future__ import annotations

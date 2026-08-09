@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2022-2026 CodeRyo Studio, Chien-Hsun Chang, and contributors
-# SPDX-License-Identifier: GPL-2.0-only
+# SPDX-License-Identifier: GPL-2.0-or-later
 """Environment-based runtime configuration."""
 
 from __future__ import annotations
