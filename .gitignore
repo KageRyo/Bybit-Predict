@@ -1,3 +1,19 @@
-data/data.json
-src/config.json
-/src/__pycache__
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.pyright/
+
+# Local data and editor files
+data/
+.DS_Store
