@@ -4,11 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bybit-predict"
-version = "4.1.0"
+version = "4.1.1a0"
 description = "Rule-based cryptocurrency market signal analysis using Bybit V5 market data."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "GPL-2.0-or-later" }
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
 authors = [
   { name = "CodeRyo Studio" },
   { name = "Chien-Hsun Chang" },
@@ -32,10 +33,12 @@ discord = [
   "discord.py>=2.4,<3",
 ]
 dev = [
+  "build>=1.2,<2",
   "discord.py>=2.4,<3",
   "pytest>=8.3,<10",
   "pytest-cov>=5,<8",
   "ruff>=0.8,<1",
+  "twine>=6,<7",
   "pyright>=1.1.390,<2",
 ]
 
@@ -44,7 +47,10 @@ bybit-predict = "bybit_predict.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/KageRyo/Bybit-Predict"
+Repository = "https://github.com/KageRyo/Bybit-Predict"
+Documentation = "https://github.com/KageRyo/Bybit-Predict#readme"
 Issues = "https://github.com/KageRyo/Bybit-Predict/issues"
+Changelog = "https://github.com/KageRyo/Bybit-Predict/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/bybit_predict"]

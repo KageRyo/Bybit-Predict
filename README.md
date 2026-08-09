@@ -51,6 +51,29 @@ analysis. The optional Discord interface needs only a Discord bot token.
 
 ## Install
 
+### From PyPI
+
+PyPI publishing begins with v4.1.1. After that release, install the CLI and its
+standard Bybit V5 dependency with:
+
+```bash
+python -m pip install bybit-predict
+```
+
+Install the optional Discord interface when you need it:
+
+```bash
+python -m pip install "bybit-predict[discord]"
+```
+
+For an isolated command-line installation, use [pipx](https://pipx.pypa.io/):
+
+```bash
+pipx install bybit-predict
+```
+
+### From source
+
 ```bash
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
@@ -60,7 +83,7 @@ python -m pip install --upgrade pip
 python -m pip install .
 ```
 
-For contributors, install development tools and the Discord extra:
+For contributors, install development and optional Discord dependencies:
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -234,12 +257,23 @@ Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for local setup and the required
 `feature/<issue>-<description>` branch convention.
 
+## Publishing
+
+Pushing a final release tag builds an sdist and universal wheel, validates them,
+publishes through PyPI Trusted Publishing, then creates a GitHub Release with
+the same artifacts. See
+[PyPI publishing](docs/pypi-publishing.md) for the maintainer-only setup and
+release procedure. No long-lived PyPI API token is stored in this repository or
+its GitHub Actions secrets.
+
 ## Roadmap
 
 - **v4.0.0:** package architecture, public Bybit V5 client, stateless legacy
   strategy, CLI, Discord slash command, configuration, quality gates, and
   documentation.
 - **v4.1.0:** reproducible backtesting and evaluation ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)).
+- **v4.1.1:** PyPI distribution, Trusted Publishing, and package-release
+  automation ([#37](https://github.com/KageRyo/Bybit-Predict/issues/37), in development).
 - **Later:** additional strategies may implement the same strategy contract;
   ML is a future option, not an implied feature.
 

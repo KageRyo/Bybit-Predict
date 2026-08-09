@@ -5,6 +5,18 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [4.1.1] - In development
+
+### Added
+
+- PyPI distribution metadata, package-artifact verification, and a Trusted
+  Publishing workflow for future releases.
+
+### Changed
+
+- Installation documentation now prioritizes PyPI and pipx usage after the
+  first PyPI release.
+
 ## [4.1.0] - 2026-08-09
 
 ### Added

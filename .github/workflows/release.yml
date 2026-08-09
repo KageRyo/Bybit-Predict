@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and validate distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Verify the tag is on main and matches the package version
+        shell: python
+        run: |
+          import os
+          import pathlib
+          import subprocess
+          import tomllib
+
+          subprocess.run(["git", "fetch", "origin", "main"], check=True)
+          subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", "origin/main"], check=True)
+          version = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"]
+          tag = os.environ["GITHUB_REF_NAME"]
+          if tag != f"v{version}":
+              raise SystemExit(f"tag {tag!r} does not match package version {version!r}")
+      - name: Install build tooling
+        run: python -m pip install --upgrade build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Validate package metadata and README rendering
+        run: python -m twine check --strict dist/*
+      - name: Verify distribution contents
+        shell: python
+        run: |
+          from pathlib import Path
+          import tarfile
+          import zipfile
+
+          dist = Path("dist")
+          wheel = next(dist.glob("*.whl"))
+          sdist = next(dist.glob("*.tar.gz"))
+          with zipfile.ZipFile(wheel) as archive:
+              assert any(name.endswith("/LICENSE") for name in archive.namelist())
+          with tarfile.open(sdist) as archive:
+              assert any(member.name.endswith("/LICENSE") for member in archive.getmembers())
+      - name: Smoke-test the wheel without source checkout imports
+        run: |
+          python -m venv .package-test-venv
+          .package-test-venv/bin/python -m pip install --no-deps dist/*.whl
+          .package-test-venv/bin/python -c "from importlib.metadata import version; assert version('bybit-predict') == '${GITHUB_REF_NAME#v}'"
+          .package-test-venv/bin/bybit-predict --help
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+      url: https://pypi.org/project/bybit-predict/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish-github:
+    name: Create GitHub Release
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/* --repo "${{ github.repository }}" --generate-notes --verify-tag
