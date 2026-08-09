@@ -13,6 +13,9 @@ __pycache__/
 htmlcov/
 .ruff_cache/
 .pyright/
+build/
+dist/
+.package-test-venv/
 
 # Local data and editor files
 data/

@@ -40,6 +40,28 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 
 ## 安裝
 
+### 從 PyPI 安裝
+
+從 v4.1.1 開始會發布至 PyPI。該版本發布後，可安裝 CLI 與標準 Bybit V5 dependency：
+
+```bash
+python -m pip install bybit-predict
+```
+
+需要 Discord 介面時，再安裝 optional extra：
+
+```bash
+python -m pip install "bybit-predict[discord]"
+```
+
+若要隔離安裝 command-line tool，可使用 [pipx](https://pipx.pypa.io/)：
+
+```bash
+pipx install bybit-predict
+```
+
+### 從原始碼安裝
+
 ```bash
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
@@ -209,10 +231,19 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱
 [CONTRIBUTING.md](CONTRIBUTING.md)，其中包含開發設定與必須遵守的
 `feature/<issue>-<description>` branch 命名規範。
 
+## 發布
+
+推送最終 release tag 時會建立 sdist 與 universal wheel、先驗證 artifact、經由 PyPI
+Trusted Publishing 發布，最後建立包含相同 artifacts 的 GitHub Release。維護者可閱讀
+[PyPI publishing](docs/pypi-publishing.md) 了解一次性的設定與 release 程序；repo 與
+GitHub Actions secrets 都不保存長效 PyPI API token。
+
 ## Roadmap
 
 - **v4.0.0：**package 架構、公開 Bybit V5 client、stateless legacy strategy、CLI、Discord slash command、設定、品質 gate 與文件。
 - **v4.1.0：**reproducible backtesting 與評估（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）。
+- **v4.1.1：**PyPI distribution、Trusted Publishing 與 package-release automation
+  （[#37](https://github.com/KageRyo/Bybit-Predict/issues/37)，開發中）。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史
