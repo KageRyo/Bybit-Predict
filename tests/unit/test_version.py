@@ -11,4 +11,4 @@ def test_runtime_version_matches_package_metadata() -> None:
     with (project_root / "pyproject.toml").open("rb") as file:
         metadata = tomllib.load(file)
 
-    assert bybit_predict.__version__ == metadata["project"]["version"] == "4.1.3"
+    assert bybit_predict.__version__ == metadata["project"]["version"] == "4.1.4"

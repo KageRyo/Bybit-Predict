@@ -5,6 +5,14 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [4.1.4] - 2026-08-12
+
+### Fixed
+
+- Ship the exact standard GNU General Public License version 2 text in source
+  and wheel distributions, allowing GitHub to identify the repository license
+  as GPL-2.0.
+
 ## [4.1.3] - 2026-08-12
 
 ### Fixed

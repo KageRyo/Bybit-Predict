@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "bybit-predict"
-version = "4.1.3"
+version = "4.1.4"
 description = "Rule-based cryptocurrency market analysis and reproducible backtesting using Bybit V5 market data."
 readme = "README.md"
 requires-python = ">=3.11"
