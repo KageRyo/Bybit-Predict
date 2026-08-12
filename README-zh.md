@@ -5,9 +5,9 @@
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
 
-> **目前正式版本：v4.1.2。**此文件與 PyPI metadata 修補版本反映 v4.1.1 的 PyPI
-> 發行與 v4.1.0 的可重現歷史回測；專案仍刻意保留 repo、issues、已 merge 的貢獻、forks
-> 與 Git history。前一個 legacy release 為 v3.1。
+> **目前正式版本：v4.1.3。**此 maintenance release 還原完整 GPL v2 授權條文並更新
+> CI dependencies；它承接 v4.1.1 的 PyPI 發行與 v4.1.0 的可重現歷史回測。前一個
+> legacy release 為 v3.1。
 
 [English](README.md)
 
@@ -247,6 +247,7 @@ GitHub Actions secrets 都不保存長效 PyPI API token。
 - **v4.1.1：**PyPI distribution、Trusted Publishing 與 package-release automation
   （[#37](https://github.com/KageRyo/Bybit-Predict/issues/37)）。
 - **v4.1.2：**文件與 PyPI metadata 修正（[#40](https://github.com/KageRyo/Bybit-Predict/issues/40)）。
+- **v4.1.3：**CI dependency maintenance 與完整 GPL v2 授權條文還原。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史

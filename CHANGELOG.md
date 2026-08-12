@@ -5,6 +5,20 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [4.1.3] - 2026-08-12
+
+### Fixed
+
+- Restored the complete official GNU General Public License version 2 text in
+  the distributed `LICENSE` file.
+
+### Changed
+
+- Updated GitHub Actions artifact dependencies and the development Twine
+  requirement used by CI.
+- Pin build metadata to Core Metadata 2.4 until release-validation tooling
+  supports 2.5.
+
 ## [4.1.2] - 2026-08-09
 
 ### Fixed

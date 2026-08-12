@@ -6,11 +6,10 @@
 **Rule-based cryptocurrency market analysis, signal generation, and Discord
 integration powered by public Bybit V5 market data.**
 
-> **Current release: v4.1.2.** This documentation and PyPI metadata patch
-> reflects the PyPI distribution introduced in v4.1.1 and the reproducible
-> historical backtesting introduced in v4.1.0. The repository, issues, merged
-> contributions, and Git history remain intentionally preserved; the latest
-> legacy release was v3.1.
+> **Current release: v4.1.3.** This maintenance release restores the complete
+> GPL v2 license text and updates CI dependencies. It builds on the PyPI
+> distribution introduced in v4.1.1 and reproducible historical backtesting
+> introduced in v4.1.0; the latest legacy release was v3.1.
 
 [正體中文](README-zh.md)
 
@@ -276,6 +275,8 @@ its GitHub Actions secrets.
   automation ([#37](https://github.com/KageRyo/Bybit-Predict/issues/37)).
 - **v4.1.2:** documentation and PyPI metadata corrections
   ([#40](https://github.com/KageRyo/Bybit-Predict/issues/40)).
+- **v4.1.3:** CI dependency maintenance and restoration of the complete GPL v2
+  license text.
 - **Later:** additional strategies may implement the same strategy contract;
   ML is a future option, not an implied feature.
 
