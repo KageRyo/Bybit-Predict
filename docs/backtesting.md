@@ -47,6 +47,22 @@ and supplies chronological data to the engine. The public API may return a
 still-open latest candle, so choose an `--end` safely in the past when
 evaluating a completed period.
 
+## Candle continuity
+
+Before a strategy is executed, the engine verifies that every adjacent candle
+matches the requested interval. Numeric Bybit intervals use a fixed number of
+minutes (`1`, `3`, `5`, `15`, `30`, `60`, `120`, `240`, `360`, or `720`); `D`
+uses one day and `W` uses seven days. The interval is case-insensitive for
+`D`, `W`, and `M`, and unsupported or ambiguous values fail with
+`BacktestError`.
+
+`M` is calendar-based rather than a fixed number of days: every candle must be
+at day 1 at `00:00:00` UTC, and the next candle must be the first day of the
+next UTC calendar month. All candle timestamps must be timezone-aware UTC
+timestamps. If any adjacent pair does not match the expected timestamp, the
+backtest fails before strategy analysis and reports the first actual timestamp,
+expected timestamp, and normalized interval.
+
 ## Execution model
 
 The engine uses a fixed trailing `--window` of closed candles. For each point

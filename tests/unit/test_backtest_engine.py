@@ -22,6 +22,17 @@ def candle(index: int, *, open_price: float, close: float) -> Candle:
     )
 
 
+def candle_at(timestamp: datetime, index: int) -> Candle:
+    return Candle(
+        timestamp=timestamp,
+        open=10 + index,
+        high=12 + index,
+        low=9 + index,
+        close=11 + index,
+        volume=100 + index,
+    )
+
+
 def result_for(candles: tuple[Candle, ...], trend: SignalTrend) -> PredictionResult:
     return PredictionResult(
         symbol="BTCUSDT",
@@ -126,6 +137,36 @@ def test_engine_requires_one_execution_candle_after_its_window() -> None:
         BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
             candles, symbol="BTCUSDT", interval="240"
         )
+
+
+def test_engine_rejects_a_candle_gap_before_strategy_analysis() -> None:
+    start = datetime(2024, 1, 1, tzinfo=UTC)
+    candles = tuple(candle_at(start + timedelta(hours=4 * index), index) for index in (0, 1, 3))
+    strategy = FixedStrategy(SignalTrend.BULLISH)
+
+    with pytest.raises(BacktestError) as error:
+        BacktestEngine(strategy, analysis_window=2).run(candles, symbol="BTCUSDT", interval="240")
+
+    message = str(error.value)
+    assert "actual=2024-01-01T12:00:00+00:00" in message
+    assert "expected=2024-01-01T08:00:00+00:00" in message
+    assert "interval=240" in message
+    assert strategy.windows == []
+
+
+def test_engine_reports_the_first_gap_when_multiple_candles_are_missing() -> None:
+    start = datetime(2024, 1, 1, tzinfo=UTC)
+    candles = tuple(candle_at(start + timedelta(hours=4 * index), index) for index in (0, 1, 3, 5))
+
+    with pytest.raises(BacktestError) as error:
+        BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
+            candles, symbol="BTCUSDT", interval="240"
+        )
+
+    message = str(error.value)
+    assert "actual=2024-01-01T12:00:00+00:00" in message
+    assert "expected=2024-01-01T08:00:00+00:00" in message
+    assert "actual=2024-01-01T20:00:00+00:00" not in message
 
 
 def test_metric_helpers_cover_drawdown_sharpe_and_interval_scaling() -> None:
