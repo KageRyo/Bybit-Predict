@@ -7,6 +7,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from math import isfinite
 
 
 class SignalTrend(StrEnum):
@@ -33,12 +34,20 @@ class Candle:
             raise ValueError("Candle timestamp must be timezone-aware")
         if self.timestamp.utcoffset() != UTC.utcoffset(self.timestamp):
             raise ValueError("Candle timestamp must be in UTC")
+        for field in ("open", "high", "low", "close"):
+            value = getattr(self, field)
+            if not isfinite(value):
+                raise ValueError(f"Candle {field} must be finite")
+            if value <= 0:
+                raise ValueError(f"Candle {field} must be positive")
+        if not isfinite(self.volume):
+            raise ValueError("Candle volume must be finite")
         if self.high < self.low:
             raise ValueError("Candle high cannot be below low")
         if self.high < max(self.open, self.close) or self.low > min(self.open, self.close):
             raise ValueError("Candle OHLC values are inconsistent")
         if self.volume < 0:
-            raise ValueError("Candle volume cannot be negative")
+            raise ValueError("Candle volume must be non-negative")
 
 
 @dataclass(frozen=True, slots=True)
