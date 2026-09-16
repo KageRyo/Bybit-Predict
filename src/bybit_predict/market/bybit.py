@@ -13,13 +13,14 @@ from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, cast
 
-from bybit_predict.exceptions import MarketDataError
+from bybit_predict.exceptions import BybitAPIError, MarketDataError
 from bybit_predict.models import Candle
 
 MarketCategory = Literal["linear", "spot", "inverse"]
 SUPPORTED_INTERVALS = frozenset(
     {"1", "3", "5", "15", "30", "60", "120", "240", "360", "720", "D", "W", "M"}
 )
+RETRYABLE_API_ERROR_CODES = frozenset({"10000", "10006", "10016"})
 
 
 class BybitSession(Protocol):
@@ -184,12 +185,18 @@ class BybitV5MarketClient:
                 response = operation(**kwargs)
                 self._raise_for_api_error(response)
                 return response
+            except BybitAPIError as error:
+                if not error.retryable:
+                    raise
+                last_error = error
             except MarketDataError:
                 raise
             except Exception as error:  # pybit exposes transport-specific exception types
                 last_error = error
-                if attempt + 1 < self._max_retries:
-                    self._sleep(self._retry_delay_seconds * (2**attempt))
+            if attempt + 1 < self._max_retries:
+                self._sleep(self._retry_delay_seconds * (2**attempt))
+        if isinstance(last_error, BybitAPIError):
+            raise last_error
         raise MarketDataError("Bybit request failed after bounded retries") from last_error
 
     @staticmethod
@@ -223,7 +230,11 @@ class BybitV5MarketClient:
         ret_code = response.get("retCode", response.get("ret_code"))
         if ret_code not in (None, 0, "0"):
             message = response.get("retMsg", response.get("ret_msg", "Unknown Bybit API error"))
-            raise MarketDataError(f"Bybit API error {ret_code}: {message}")
+            raise BybitAPIError(
+                ret_code,
+                str(message),
+                retryable=str(ret_code) in RETRYABLE_API_ERROR_CODES,
+            )
 
     @classmethod
     def _result(cls, response: Mapping[str, Any], *, endpoint: str) -> Mapping[str, Any]:
