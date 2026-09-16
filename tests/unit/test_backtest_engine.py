@@ -130,6 +130,83 @@ def test_engine_applies_fee_and_slippage_to_trade_returns() -> None:
     assert result.baselines[0].total_return == pytest.approx(12.87 / 12.12 - 1 - 0.02)
 
 
+def test_sma_baseline_does_not_build_full_close_prefix_each_step() -> None:
+    class SliceTrackingCandles:
+        def __init__(self, values: tuple[Candle, ...]) -> None:
+            self.values = values
+            self.large_slices: list[slice] = []
+
+        def __len__(self) -> int:
+            return len(self.values)
+
+        def __iter__(self):
+            return iter(self.values)
+
+        def __getitem__(self, index: int | slice) -> Candle | tuple[Candle, ...]:
+            if isinstance(index, slice) and (index.stop or len(self.values)) > 20:
+                self.large_slices.append(index)
+            return self.values[index]
+
+    candles = SliceTrackingCandles(
+        tuple(candle(index, open_price=100 + index, close=100 + index) for index in range(25))
+    )
+    engine = BacktestEngine(FixedStrategy(SignalTrend.NEUTRAL), analysis_window=2)
+
+    engine._sma_direction_return(candles)  # type: ignore[arg-type]
+
+    assert candles.large_slices == []
+
+
+def test_sma_baseline_matches_the_existing_execution_results() -> None:
+    closes = (
+        100,
+        101,
+        103,
+        102,
+        105,
+        104,
+        106,
+        108,
+        107,
+        110,
+        109,
+        111,
+        114,
+        112,
+        115,
+        113,
+        116,
+        118,
+        117,
+        120,
+        119,
+        121,
+        118,
+        122,
+        124,
+        123,
+        126,
+        125,
+        127,
+        130,
+    )
+    candles = tuple(
+        candle(index, open_price=100 + index / 10, close=close)
+        for index, close in enumerate(closes)
+    )
+    engine = BacktestEngine(
+        FixedStrategy(SignalTrend.NEUTRAL),
+        analysis_window=2,
+        fee_rate=0.001,
+        slippage_rate=0.002,
+    )
+
+    sma_return, trade_count = engine._sma_direction_return(candles)
+
+    assert sma_return == pytest.approx(16.922194294728413)
+    assert trade_count == 19
+
+
 def test_engine_requires_one_execution_candle_after_its_window() -> None:
     candles = (candle(0, open_price=10, close=10), candle(1, open_price=10, close=11))
 
