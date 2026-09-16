@@ -9,8 +9,9 @@ import errno
 import hashlib
 import json
 import os
+import secrets
 import stat
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -28,12 +29,26 @@ from bybit_predict.backtest.models import DatasetManifest
 from bybit_predict.exceptions import BacktestError
 from bybit_predict.models import Candle
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows has no fcntl module
+    fcntl = None  # type: ignore[assignment]
+
+
 _SAFE_DESCRIPTOR_IO = (
     os.name == "posix"
+    and fcntl is not None
     and hasattr(os, "O_DIRECTORY")
     and hasattr(os, "O_NOFOLLOW")
-    and all(operation in os.supports_dir_fd for operation in (os.open, os.mkdir, os.unlink))
+    and all(
+        operation in os.supports_dir_fd
+        for operation in (os.open, os.mkdir, os.unlink, os.stat, os.link, os.rename)
+    )
 )
+
+_TEMP_FILE_PREFIX = ".bybit-predict-temp-"
+_BACKUP_FILE_PREFIX = ".bybit-predict-backup-"
+_TEMP_NAME_ATTEMPTS = 32
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,7 +164,11 @@ def save_candles_csv_safely(
 
 def _read_dataset_files(path: SafeDatasetPath) -> tuple[bytes, bytes]:
     try:
-        with _open_dataset_parent(path, create=False) as opened, contextlib.ExitStack() as stack:
+        with (
+            _open_dataset_parent(path, create=False) as opened,
+            _dataset_lock(opened.parent_fd, exclusive=False),
+            contextlib.ExitStack() as stack,
+        ):
             _require_directory_beneath(opened.root_fd, opened.parent_fd)
             try:
                 manifest_fd = os.open(
@@ -197,82 +216,186 @@ def _read_dataset_files(path: SafeDatasetPath) -> tuple[bytes, bytes]:
 
 
 def _write_dataset_files(path: SafeDatasetPath, csv_bytes: bytes, manifest_bytes: bytes) -> None:
-    created_names: list[str] = []
     try:
-        with _open_dataset_parent(path, create=True) as opened:
-            _require_directory_beneath(opened.root_fd, opened.parent_fd)
-            manifest_fd: int | None = None
-            csv_fd: int | None = None
-            try:
-                manifest_fd, manifest_created = _open_output_file(
-                    opened.parent_fd, path.manifest_name
-                )
-                if manifest_created:
-                    created_names.append(path.manifest_name)
-                _require_directory_beneath(opened.root_fd, opened.parent_fd)
-                csv_fd, csv_created = _open_output_file(opened.parent_fd, path.csv_name)
-                if csv_created:
-                    created_names.append(path.csv_name)
-                _require_directory_beneath(opened.root_fd, opened.parent_fd)
-                _replace_file_contents(csv_fd, csv_bytes)
-                _require_directory_beneath(opened.root_fd, opened.parent_fd)
-                _replace_file_contents(manifest_fd, manifest_bytes)
-                _require_directory_beneath(opened.root_fd, opened.parent_fd)
-            finally:
-                if csv_fd is not None:
-                    os.close(csv_fd)
-                if manifest_fd is not None:
-                    os.close(manifest_fd)
-            created_names.clear()
+        with (
+            _open_dataset_parent(path, create=True) as opened,
+            _dataset_lock(opened.parent_fd, exclusive=True),
+        ):
+            _write_dataset_pair(
+                opened.root_fd,
+                opened.parent_fd,
+                (
+                    (path.csv_name, csv_bytes),
+                    (path.manifest_name, manifest_bytes),
+                ),
+            )
     except OSError as error:
         raise BacktestError(
             f"Could not safely write dataset files below the trusted root for "
             f"{path.display_csv_path}: {error}"
         ) from error
-    finally:
-        if created_names:
-            _remove_created_files(path, created_names)
 
 
-def _remove_created_files(path: SafeDatasetPath, names: list[str]) -> None:
-    with contextlib.suppress(OSError), _open_dataset_parent(path, create=False) as opened:
-        _require_directory_beneath(opened.root_fd, opened.parent_fd)
-        for name in names:
-            with contextlib.suppress(OSError):
-                os.unlink(name, dir_fd=opened.parent_fd)
-
-
-def _open_output_file(parent_fd: int, name: str) -> tuple[int, bool]:
-    flags = os.O_WRONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0)
+def _write_dataset_pair(
+    root_fd: int,
+    parent_fd: int,
+    files: tuple[tuple[str, bytes], tuple[str, bytes]],
+) -> None:
+    """Install two dataset files with per-file atomic replacement and rollback."""
+    temporary_names: list[str] = []
+    backup_names: dict[str, str] = {}
+    installed_names: set[str] = set()
+    target_names = tuple(name for name, _ in files)
     try:
-        file_descriptor = os.open(name, flags, dir_fd=parent_fd)
-        created = False
-    except FileNotFoundError:
-        try:
-            file_descriptor = os.open(
-                name,
-                flags | os.O_CREAT | os.O_EXCL,
-                0o666,
-                dir_fd=parent_fd,
-            )
-            created = True
-        except FileExistsError:
-            file_descriptor = os.open(name, flags, dir_fd=parent_fd)
-            created = False
-    try:
-        _require_regular_file(file_descriptor, reject_hard_links=True)
+        _require_directory_beneath(root_fd, parent_fd)
+        for _, content in files:
+            temporary_names.append(_create_temporary_file(parent_fd, content))
+        _require_directory_beneath(root_fd, parent_fd)
+
+        for name in target_names:
+            backup_name = _backup_existing_file(parent_fd, name)
+            if backup_name is not None:
+                backup_names[name] = backup_name
+        _require_directory_beneath(root_fd, parent_fd)
+
+        for (name, _), temporary_name in zip(files, tuple(temporary_names), strict=True):
+            _require_directory_beneath(root_fd, parent_fd)
+            _rename_relative(parent_fd, temporary_name, name)
+            temporary_names.remove(temporary_name)
+            installed_names.add(name)
+        _require_directory_beneath(root_fd, parent_fd)
+        os.fsync(parent_fd)
     except OSError:
-        os.close(file_descriptor)
-        if created:
+        _rollback_dataset_pair(
+            parent_fd,
+            target_names,
+            temporary_names,
+            backup_names,
+            installed_names,
+        )
+        raise
+    else:
+        _cleanup_relative_names(parent_fd, temporary_names)
+        _cleanup_relative_names(parent_fd, backup_names.values())
+
+
+def _create_temporary_file(parent_fd: int, content: bytes) -> str:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0)
+    for _ in range(_TEMP_NAME_ATTEMPTS):
+        name = f"{_TEMP_FILE_PREFIX}{secrets.token_hex(16)}"
+        try:
+            file_descriptor = os.open(name, flags, 0o600, dir_fd=parent_fd)
+        except FileExistsError:
+            continue
+        try:
+            _require_regular_file(file_descriptor, reject_hard_links=True)
+            try:
+                _write_file_contents(file_descriptor, content)
+            finally:
+                os.close(file_descriptor)
+        except BaseException:
             with contextlib.suppress(OSError):
                 os.unlink(name, dir_fd=parent_fd)
-        raise
-    return file_descriptor, created
+            raise
+        return name
+    raise OSError(errno.EEXIST, "could not allocate a unique temporary dataset file")
 
 
-def _replace_file_contents(file_descriptor: int, content: bytes) -> None:
-    os.ftruncate(file_descriptor, 0)
-    os.lseek(file_descriptor, 0, os.SEEK_SET)
+def _backup_existing_file(parent_fd: int, name: str) -> str | None:
+    try:
+        _require_existing_output_file(parent_fd, name)
+    except FileNotFoundError:
+        return None
+
+    for _ in range(_TEMP_NAME_ATTEMPTS):
+        backup_name = f"{_BACKUP_FILE_PREFIX}{secrets.token_hex(16)}"
+        try:
+            os.link(
+                name,
+                backup_name,
+                src_dir_fd=parent_fd,
+                dst_dir_fd=parent_fd,
+                follow_symlinks=False,
+            )
+        except FileExistsError:
+            continue
+        except FileNotFoundError:
+            return None
+        return backup_name
+    raise OSError(errno.EEXIST, "could not allocate a unique dataset backup file")
+
+
+def _require_existing_output_file(parent_fd: int, name: str) -> None:
+    file_stat = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    if not stat.S_ISREG(file_stat.st_mode):
+        raise OSError(errno.EINVAL, "dataset output must be a regular file")
+    if file_stat.st_nlink > 1:
+        raise OSError(errno.EMLINK, "dataset output must not be a hard link")
+
+
+def _rename_relative(parent_fd: int, source: str, destination: str) -> None:
+    """Atomically replace a sibling name without resolving either path anew."""
+    os.rename(
+        source,
+        destination,
+        src_dir_fd=parent_fd,
+        dst_dir_fd=parent_fd,
+    )
+
+
+def _rollback_dataset_pair(
+    parent_fd: int,
+    target_names: tuple[str, ...],
+    temporary_names: list[str],
+    backup_names: dict[str, str],
+    installed_names: set[str],
+) -> None:
+    rollback_error: OSError | None = None
+    for name in reversed(target_names):
+        backup_name = backup_names.get(name)
+        try:
+            if name in installed_names:
+                if backup_name is None:
+                    os.unlink(name, dir_fd=parent_fd)
+                else:
+                    _rename_relative(parent_fd, backup_name, name)
+                    with contextlib.suppress(OSError):
+                        os.unlink(backup_name, dir_fd=parent_fd)
+                    backup_names.pop(name, None)
+            elif backup_name is not None:
+                _rename_relative(parent_fd, backup_name, name)
+                with contextlib.suppress(OSError):
+                    os.unlink(backup_name, dir_fd=parent_fd)
+                backup_names.pop(name, None)
+        except OSError as error:
+            rollback_error = rollback_error or error
+    _cleanup_relative_names(parent_fd, temporary_names)
+    _cleanup_relative_names(parent_fd, backup_names.values())
+    if rollback_error is not None:
+        raise OSError(
+            errno.EIO, f"dataset write rollback failed: {rollback_error}"
+        ) from rollback_error
+
+
+def _cleanup_relative_names(parent_fd: int, names: Iterable[str]) -> None:
+    for name in names:
+        with contextlib.suppress(OSError):
+            os.unlink(name, dir_fd=parent_fd)
+
+
+@contextlib.contextmanager
+def _dataset_lock(directory_fd: int, *, exclusive: bool) -> Iterator[None]:
+    if fcntl is None:
+        raise BacktestError("Secure CLI dataset I/O requires POSIX advisory locking support")
+    operation = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
+    fcntl.flock(directory_fd, operation)
+    try:
+        yield
+    finally:
+        fcntl.flock(directory_fd, fcntl.LOCK_UN)
+
+
+def _write_file_contents(file_descriptor: int, content: bytes) -> None:
     view = memoryview(content)
     while view:
         written = os.write(file_descriptor, view)
@@ -330,9 +453,16 @@ def _require_directory_beneath(root_fd: int, directory_fd: int) -> None:
             current_stat = os.fstat(current_fd)
             if current_stat.st_dev == root_stat.st_dev and current_stat.st_ino == root_stat.st_ino:
                 return
-            parent_fd = os.open("..", directory_flags, dir_fd=current_fd)
-            parent_stat = os.fstat(parent_fd)
+            parent_fd: int | None = None
+            try:
+                parent_fd = os.open("..", directory_flags, dir_fd=current_fd)
+                parent_stat = os.fstat(parent_fd)
+            except OSError:
+                if parent_fd is not None:
+                    os.close(parent_fd)
+                raise
             os.close(current_fd)
+            assert parent_fd is not None
             current_fd = parent_fd
             if (
                 parent_stat.st_dev == current_stat.st_dev

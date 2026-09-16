@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from bybit_predict.backtest import safe_data
 from bybit_predict.backtest.data import save_candles_csv
 from bybit_predict.cli import build_parser, main
 from bybit_predict.models import Candle
@@ -180,6 +181,75 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
 
     assert rejected_status == 1
     assert "manifest" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+
+
+def test_backtest_cli_save_rolls_back_when_manifest_replacement_fails(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_dir = tmp_path / "data"
+    data_path = data_dir / "candles.csv"
+    data_dir.mkdir()
+    _save_cli_dataset(data_path, candles)
+    manifest_path = data_path.with_name(f"{data_path.name}.manifest.json")
+    original_csv = data_path.read_bytes()
+    original_manifest = manifest_path.read_bytes()
+
+    class Market:
+        def is_valid_symbol(self, symbol: str) -> bool:
+            return symbol == "BTCUSDT"
+
+        def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
+            raise AssertionError("Live analysis data should not be requested by backtest")
+
+        def get_historical_candles(
+            self, symbol: str, *, interval: str, start: object, end: object
+        ) -> tuple[Candle, ...]:
+            return _historical_candles(candles)
+
+    original_rename = safe_data._rename_relative
+    failed = False
+
+    def fail_manifest_replacement(parent_fd: int, source: str, destination: str) -> None:
+        nonlocal failed
+        if (
+            destination == manifest_path.name
+            and source.startswith(safe_data._TEMP_FILE_PREFIX)
+            and not failed
+        ):
+            failed = True
+            raise OSError("injected manifest replacement failure")
+        original_rename(parent_fd, source, destination)
+
+    monkeypatch.setattr(safe_data, "_rename_relative", fail_manifest_replacement)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--save-data",
+                "data/candles.csv",
+            ],
+            market_factory=lambda: Market(),  # type: ignore[return-value]
+        )
+
+        assert status == 1
+        assert failed
+        assert data_path.read_bytes() == original_csv
+        assert manifest_path.read_bytes() == original_manifest
+        assert not list(data_dir.glob(".bybit-predict-*"))
+        assert "safely write" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        data_path.unlink(missing_ok=True)
+        manifest_path.unlink(missing_ok=True)
+        data_dir.rmdir()
 
 
 @pytest.mark.parametrize("option", ("--data", "--save-data"))
@@ -360,6 +430,9 @@ def test_backtest_cli_rejects_manifest_symlink_escape_on_save(
         data_dir.rmdir()
 
 
+@pytest.mark.skipif(
+    not safe_data._SAFE_DESCRIPTOR_IO, reason="requires POSIX descriptor-relative dataset I/O"
+)
 def test_backtest_cli_rejects_parent_directory_swap_after_path_validation(
     candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -446,6 +519,9 @@ def test_backtest_cli_rejects_parent_directory_swap_after_path_validation(
         outside.rmdir()
 
 
+@pytest.mark.skipif(
+    not safe_data._SAFE_DESCRIPTOR_IO, reason="requires POSIX descriptor-relative dataset I/O"
+)
 def test_backtest_cli_rejects_parent_directory_moved_outside_after_open(
     candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -564,7 +640,10 @@ def test_backtest_cli_rejects_hard_linked_csv_output_without_modifying_target(
         data_dir.rmdir()
 
 
-@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="requires POSIX FIFO support")
+@pytest.mark.skipif(
+    not safe_data._SAFE_DESCRIPTOR_IO or not hasattr(os, "mkfifo"),
+    reason="requires POSIX descriptor-relative dataset I/O and FIFO support",
+)
 def test_backtest_cli_rejects_fifo_manifest_without_blocking(tmp_path: Path) -> None:
     monkeypatch_root = tmp_path / "data"
     monkeypatch_root.mkdir()
