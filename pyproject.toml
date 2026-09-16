@@ -71,6 +71,9 @@ core-metadata-version = "2.4"
 addopts = "--strict-markers --cov=bybit_predict --cov-report=term-missing"
 testpaths = ["tests"]
 
+[tool.coverage.report]
+fail_under = 80
+
 [tool.coverage.run]
 branch = true
 source = ["bybit_predict"]
@@ -90,4 +93,4 @@ indent-style = "space"
 include = ["src", "tests"]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
-reportMissingImports = "none"
+reportMissingImports = "error"

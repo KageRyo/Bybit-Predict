@@ -27,7 +27,7 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pyright
-      - run: pytest
+      - run: pytest --cov-fail-under=80
 
   package:
     name: Build package distribution
