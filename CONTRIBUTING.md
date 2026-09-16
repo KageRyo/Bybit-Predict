@@ -37,6 +37,15 @@ platform and dependency variation while still preventing a substantial
 regression. Pyright runs in basic mode but treats missing imports as errors;
 dependencies expected by the project are installed by the `.[dev]` extra.
 
+## Protected main branch
+
+`main` accepts changes only through a pull request. The pull request must pass
+all four required CI jobs: `Python 3.11`, `Python 3.12`, `Python 3.13`, and
+`Build package distribution`. Direct pushes, force pushes, and deletion of
+`main` are blocked. This single-maintainer policy intentionally requires no
+separate approval count, but administrators are not exempt from the protection
+rules and must still use a pull request with the required checks.
+
 ## Branches and pull requests
 
 Use the following branch convention for every contribution:
