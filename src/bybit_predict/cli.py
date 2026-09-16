@@ -16,6 +16,7 @@ from bybit_predict.backtest.data import (
     save_candles_csv,
 )
 from bybit_predict.backtest.engine import BacktestEngine
+from bybit_predict.backtest.intervals import normalize_backtest_interval
 from bybit_predict.config import bybit_testnet_enabled
 from bybit_predict.exceptions import BybitPredictError, SymbolNotFoundError
 from bybit_predict.market.base import HistoricalMarketDataClient
@@ -148,28 +149,46 @@ def _run_backtest(
     try:
         start = parse_utc_datetime(arguments.start)
         end = parse_utc_datetime(arguments.end)
+        symbol = arguments.symbol.strip().upper()
+        interval = normalize_backtest_interval(arguments.interval)
         if arguments.data is not None and arguments.save_data is not None:
             raise ValueError("--data and --save-data cannot be used together")
         if arguments.data is not None:
-            candles = filter_candles(load_candles_csv(arguments.data), start=start, end=end)
+            candles = filter_candles(
+                load_candles_csv(
+                    arguments.data,
+                    symbol=symbol,
+                    category="linear",
+                    interval=interval,
+                    requested_start=start,
+                    requested_end=end,
+                ),
+                start=start,
+                end=end,
+            )
         else:
             market = market_factory() if market_factory is not None else _default_market_client()
-            symbol = arguments.symbol.strip().upper()
             if not market.is_valid_symbol(symbol):
                 subject = symbol or "The requested symbol"
                 raise SymbolNotFoundError(f"{subject} is not an active Bybit symbol")
-            candles = market.get_historical_candles(
-                symbol, interval=arguments.interval, start=start, end=end
-            )
+            candles = market.get_historical_candles(symbol, interval=interval, start=start, end=end)
             if arguments.save_data is not None:
-                save_candles_csv(arguments.save_data, candles)
+                save_candles_csv(
+                    arguments.save_data,
+                    candles,
+                    symbol=symbol,
+                    category="linear",
+                    interval=interval,
+                    requested_start=start,
+                    requested_end=end,
+                )
         engine = BacktestEngine(
             LegacyRuleBasedStrategy(),
             analysis_window=arguments.window,
             fee_rate=arguments.fee_rate,
             slippage_rate=arguments.slippage_rate,
         )
-        result = engine.run(candles, symbol=arguments.symbol, interval=arguments.interval)
+        result = engine.run(candles, symbol=symbol, interval=interval)
     except (BybitPredictError, OSError, ValueError) as error:
         print(f"Backtest failed: {error}", file=sys.stderr)
         return 1

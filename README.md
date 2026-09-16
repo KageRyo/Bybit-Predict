@@ -39,8 +39,9 @@ outcome.
 - Active symbols validated using Bybit instrument metadata, not a hard-coded
   coin list.
 - Tests, Ruff, Pyright, GitHub Actions CI, and Dependabot.
-- Deterministic historical backtesting with saved CSV inputs, explicit
-  assumptions, performance metrics, and two simple baselines.
+- Deterministic historical backtesting with saved CSV inputs, validated
+  dataset manifests, explicit assumptions, performance metrics, and two simple
+  baselines.
 
 ## Requirements
 
@@ -153,8 +154,13 @@ bybit-predict backtest BTCUSDT \
 
 `--start` is inclusive, `--end` is exclusive, and date-only values mean
 midnight UTC. See [backtesting and evaluation](docs/backtesting.md) for metric
-definitions, baseline semantics, reproducibility requirements, and important
-limitations.
+definitions, baseline semantics, manifest validation, reproducibility
+requirements, and important limitations. Saving a CSV also creates the
+required `<csv-name>.manifest.json` sidecar; `--data` rejects missing,
+malformed, mismatched, or tampered CSV/manifest pairs before replay.
+The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
+`source`, `requested_start`, `requested_end`, `generated_at`, and
+`content_sha256` (schema `1`, source `Bybit V5`).
 
 ## Discord slash commands
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import timedelta
 from pathlib import Path
 
@@ -96,6 +97,14 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
 
     assert status == 0
     assert saved.is_file()
+    manifest_path = saved.with_name(f"{saved.name}.manifest.json")
+    assert manifest_path.is_file()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["symbol"] == "BTCUSDT"
+    assert manifest["category"] == "linear"
+    assert manifest["interval"] == "240"
+    assert manifest["requested_start"] == "2026-01-01T00:00:00Z"
+    assert manifest["requested_end"] == "2026-01-10T00:00:00Z"
     assert "Performance:" in capsys.readouterr().out  # type: ignore[attr-defined]
 
     class NoNetworkMarket:
@@ -128,3 +137,23 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
 
     assert offline_status == 0
     assert "Performance:" in capsys.readouterr().out  # type: ignore[attr-defined]
+
+    manifest_path.unlink()
+    rejected_status = main(
+        [
+            "backtest",
+            "BTCUSDT",
+            "--start",
+            "2026-01-01",
+            "--end",
+            "2026-01-10",
+            "--window",
+            "42",
+            "--data",
+            str(saved),
+        ],
+        market_factory=lambda: NoNetworkMarket(),  # type: ignore[return-value]
+    )
+
+    assert rejected_status == 1
+    assert "manifest" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]

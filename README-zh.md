@@ -30,7 +30,7 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 - 提供 CLI，以及可選用、非阻塞的 Discord slash command。
 - 透過 Bybit instrument metadata 驗證有效交易對，不再 hard-code 幣種清單。
 - 具備測試、Ruff、Pyright、GitHub Actions CI 與 Dependabot。
-- 提供可重現的歷史 backtesting：可保存 CSV 輸入、明確列出假設、計算績效指標，並與兩個簡單 baseline 比較。
+- 提供可重現的歷史 backtesting：可保存 CSV 輸入與經驗證的 dataset manifest、明確列出假設、計算績效指標，並與兩個簡單 baseline 比較。
 
 ## 系統需求
 
@@ -140,8 +140,13 @@ bybit-predict backtest BTCUSDT \
 ```
 
 `--start` 是包含起點、`--end` 是不包含終點；只輸入日期時代表 UTC 午夜。完整的
-metric 定義、baseline 語意、重現方式和重要限制請見
-[backtesting and evaluation](docs/backtesting.md)。
+metric 定義、baseline 語意、manifest 驗證、重現方式和重要限制請見
+[backtesting and evaluation](docs/backtesting.md)。保存 CSV 時也會建立必要的
+`<csv-name>.manifest.json` sidecar；`--data` 會在 replay 前拒絕缺少、格式錯誤、metadata
+不匹配或內容遭竄改的 CSV/manifest 配對。
+sidecar 只包含 `schema_version`、`symbol`、`category`、`interval`、`source`、
+`requested_start`、`requested_end`、`generated_at` 與 `content_sha256` 九個欄位，使用
+schema `1` 與 source `Bybit V5`。
 
 ## Discord slash commands
 
