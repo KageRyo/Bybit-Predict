@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -442,3 +444,164 @@ def test_backtest_cli_rejects_parent_directory_swap_after_path_validation(
         outside_data_path.unlink(missing_ok=True)
         outside_manifest_path.unlink(missing_ok=True)
         outside.rmdir()
+
+
+def test_backtest_cli_rejects_parent_directory_moved_outside_after_open(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    data_path = data_dir / "candles.csv"
+    _save_cli_dataset(data_path, candles)
+    manifest_path = data_path.with_name(f"{data_path.name}.manifest.json")
+
+    outside = tmp_path.parent / f"{tmp_path.name}-moved-outside"
+    outside_data_path = outside / data_path.name
+    outside_manifest_path = outside / manifest_path.name
+    outside_csv_sentinel = data_path.read_bytes()
+    outside_manifest_sentinel = manifest_path.read_bytes()
+
+    original_open = os.open
+    moved = False
+
+    def move_opened_directory(
+        path: str | os.PathLike[str],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        nonlocal moved
+        file_descriptor = original_open(path, flags, mode, dir_fd=dir_fd)
+        if not moved and dir_fd is not None and Path(path) == Path("data"):
+            data_dir.rename(outside)
+            moved = True
+        return file_descriptor
+
+    monkeypatch.setattr(os, "open", move_opened_directory)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--data",
+                "data/candles.csv",
+            ]
+        )
+
+        assert status == 1
+        assert moved
+        assert not data_dir.exists()
+        assert outside.is_dir()
+        assert not outside.is_symlink()
+        assert outside_data_path.read_bytes() == outside_csv_sentinel
+        assert outside_manifest_path.read_bytes() == outside_manifest_sentinel
+        assert "safe" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        outside_data_path.unlink(missing_ok=True)
+        outside_manifest_path.unlink(missing_ok=True)
+        outside.rmdir()
+
+
+def test_backtest_cli_rejects_hard_linked_csv_output_without_modifying_target(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    data_path = data_dir / "candles.csv"
+    outside_sentinel_path = tmp_path.parent / f"{tmp_path.name}-hard-link-sentinel.csv"
+    sentinel = b"keep this hard-link target unchanged\n"
+    outside_sentinel_path.write_bytes(sentinel)
+    data_path.hardlink_to(outside_sentinel_path)
+
+    class Market:
+        def is_valid_symbol(self, symbol: str) -> bool:
+            return symbol == "BTCUSDT"
+
+        def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
+            raise AssertionError("Live analysis data should not be requested by backtest")
+
+        def get_historical_candles(
+            self, symbol: str, *, interval: str, start: object, end: object
+        ) -> tuple[Candle, ...]:
+            return _historical_candles(candles)
+
+    manifest_path = data_path.with_name(f"{data_path.name}.manifest.json")
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--save-data",
+                "data/candles.csv",
+            ],
+            market_factory=lambda: Market(),  # type: ignore[return-value]
+        )
+
+        assert status == 1
+        assert outside_sentinel_path.read_bytes() == sentinel
+        assert data_path.read_bytes() == sentinel
+        assert "safe" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        manifest_path.unlink(missing_ok=True)
+        data_path.unlink(missing_ok=True)
+        outside_sentinel_path.unlink(missing_ok=True)
+        data_dir.rmdir()
+
+
+@pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="requires POSIX FIFO support")
+def test_backtest_cli_rejects_fifo_manifest_without_blocking(tmp_path: Path) -> None:
+    monkeypatch_root = tmp_path / "data"
+    monkeypatch_root.mkdir()
+    csv_path = monkeypatch_root / "candles.csv"
+    manifest_path = csv_path.with_name(f"{csv_path.name}.manifest.json")
+    csv_path.write_bytes(b"")
+    os.mkfifo(manifest_path)
+    arguments = [
+        "backtest",
+        "BTCUSDT",
+        "--start",
+        "2026-01-01",
+        "--end",
+        "2026-01-10",
+        "--window",
+        "42",
+        "--data",
+        "data/candles.csv",
+    ]
+    script = f"from bybit_predict.cli import main; raise SystemExit(main({arguments!r}))"
+
+    try:
+        try:
+            result = subprocess.run(
+                [sys.executable, "-c", script],
+                cwd=tmp_path,
+                capture_output=True,
+                text=True,
+                timeout=1.0,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as error:
+            pytest.fail(f"FIFO manifest open blocked: {error}")
+
+        assert result.returncode == 1
+        assert "backtest failed" in result.stderr.lower()
+    finally:
+        manifest_path.unlink(missing_ok=True)
+        csv_path.unlink(missing_ok=True)
+        monkeypatch_root.rmdir()

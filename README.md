@@ -164,6 +164,8 @@ The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
 CLI dataset paths must resolve under the current working directory: the
 documented `data/<file>` form works, while `..` traversal, paths outside that
 root, and symlink components are rejected before a backtest runs.
+The CLI also requires regular CSV and manifest files: existing hard-linked
+outputs and special files such as FIFOs are rejected without blocking.
 
 ## Discord slash commands
 

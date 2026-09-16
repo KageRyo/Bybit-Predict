@@ -37,6 +37,12 @@ _SAFE_DESCRIPTOR_IO = (
 
 
 @dataclass(frozen=True, slots=True)
+class _OpenedDatasetParent:
+    root_fd: int
+    parent_fd: int
+
+
+@dataclass(frozen=True, slots=True)
 class SafeDatasetPath:
     """A CLI dataset path reduced to trusted-root-relative components."""
 
@@ -143,12 +149,13 @@ def save_candles_csv_safely(
 
 def _read_dataset_files(path: SafeDatasetPath) -> tuple[bytes, bytes]:
     try:
-        with _open_dataset_parent(path, create=False) as parent_fd, contextlib.ExitStack() as stack:
+        with _open_dataset_parent(path, create=False) as opened, contextlib.ExitStack() as stack:
+            _require_directory_beneath(opened.root_fd, opened.parent_fd)
             try:
                 manifest_fd = os.open(
                     path.manifest_name,
-                    os.O_RDONLY | os.O_NOFOLLOW,
-                    dir_fd=parent_fd,
+                    os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0),
+                    dir_fd=opened.parent_fd,
                 )
             except FileNotFoundError as error:
                 raise BacktestError(
@@ -156,20 +163,25 @@ def _read_dataset_files(path: SafeDatasetPath) -> tuple[bytes, bytes]:
                     "save the CSV with --save-data"
                 ) from error
             manifest_file = stack.enter_context(os.fdopen(manifest_fd, "rb"))
+            _require_regular_file(manifest_fd)
+            _require_directory_beneath(opened.root_fd, opened.parent_fd)
             try:
                 csv_fd = os.open(
                     path.csv_name,
                     os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_NONBLOCK", 0),
-                    dir_fd=parent_fd,
+                    dir_fd=opened.parent_fd,
                 )
             except FileNotFoundError as error:
                 raise BacktestError(
                     f"Could not read candle CSV {path.display_csv_path}: {error}"
                 ) from error
             csv_file = stack.enter_context(os.fdopen(csv_fd, "rb"))
-            _require_regular_file(manifest_fd)
             _require_regular_file(csv_fd)
-            return manifest_file.read(), csv_file.read()
+            _require_directory_beneath(opened.root_fd, opened.parent_fd)
+            manifest_bytes = manifest_file.read()
+            csv_bytes = csv_file.read()
+            _require_directory_beneath(opened.root_fd, opened.parent_fd)
+            return manifest_bytes, csv_bytes
     except BacktestError:
         raise
     except FileNotFoundError as error:
@@ -187,18 +199,25 @@ def _read_dataset_files(path: SafeDatasetPath) -> tuple[bytes, bytes]:
 def _write_dataset_files(path: SafeDatasetPath, csv_bytes: bytes, manifest_bytes: bytes) -> None:
     created_names: list[str] = []
     try:
-        with _open_dataset_parent(path, create=True) as parent_fd:
+        with _open_dataset_parent(path, create=True) as opened:
+            _require_directory_beneath(opened.root_fd, opened.parent_fd)
             manifest_fd: int | None = None
             csv_fd: int | None = None
             try:
-                manifest_fd, manifest_created = _open_output_file(parent_fd, path.manifest_name)
+                manifest_fd, manifest_created = _open_output_file(
+                    opened.parent_fd, path.manifest_name
+                )
                 if manifest_created:
                     created_names.append(path.manifest_name)
-                csv_fd, csv_created = _open_output_file(parent_fd, path.csv_name)
+                _require_directory_beneath(opened.root_fd, opened.parent_fd)
+                csv_fd, csv_created = _open_output_file(opened.parent_fd, path.csv_name)
                 if csv_created:
                     created_names.append(path.csv_name)
+                _require_directory_beneath(opened.root_fd, opened.parent_fd)
                 _replace_file_contents(csv_fd, csv_bytes)
+                _require_directory_beneath(opened.root_fd, opened.parent_fd)
                 _replace_file_contents(manifest_fd, manifest_bytes)
+                _require_directory_beneath(opened.root_fd, opened.parent_fd)
             finally:
                 if csv_fd is not None:
                     os.close(csv_fd)
@@ -216,10 +235,11 @@ def _write_dataset_files(path: SafeDatasetPath, csv_bytes: bytes, manifest_bytes
 
 
 def _remove_created_files(path: SafeDatasetPath, names: list[str]) -> None:
-    with contextlib.suppress(OSError), _open_dataset_parent(path, create=False) as parent_fd:
+    with contextlib.suppress(OSError), _open_dataset_parent(path, create=False) as opened:
+        _require_directory_beneath(opened.root_fd, opened.parent_fd)
         for name in names:
             with contextlib.suppress(OSError):
-                os.unlink(name, dir_fd=parent_fd)
+                os.unlink(name, dir_fd=opened.parent_fd)
 
 
 def _open_output_file(parent_fd: int, name: str) -> tuple[int, bool]:
@@ -240,7 +260,7 @@ def _open_output_file(parent_fd: int, name: str) -> tuple[int, bool]:
             file_descriptor = os.open(name, flags, dir_fd=parent_fd)
             created = False
     try:
-        _require_regular_file(file_descriptor)
+        _require_regular_file(file_descriptor, reject_hard_links=True)
     except OSError:
         os.close(file_descriptor)
         if created:
@@ -262,13 +282,16 @@ def _replace_file_contents(file_descriptor: int, content: bytes) -> None:
     os.fsync(file_descriptor)
 
 
-def _require_regular_file(file_descriptor: int) -> None:
-    if not stat.S_ISREG(os.fstat(file_descriptor).st_mode):
+def _require_regular_file(file_descriptor: int, *, reject_hard_links: bool = False) -> None:
+    file_stat = os.fstat(file_descriptor)
+    if not stat.S_ISREG(file_stat.st_mode):
         raise OSError(errno.EINVAL, "dataset path must reference a regular file")
+    if reject_hard_links and file_stat.st_nlink > 1:
+        raise OSError(errno.EMLINK, "dataset output must not be a hard link")
 
 
 @contextlib.contextmanager
-def _open_dataset_parent(path: SafeDatasetPath, *, create: bool) -> Iterator[int]:
+def _open_dataset_parent(path: SafeDatasetPath, *, create: bool) -> Iterator[_OpenedDatasetParent]:
     if not _SAFE_DESCRIPTOR_IO:
         raise BacktestError(
             "Secure CLI dataset I/O requires POSIX descriptor-relative no-follow support"
@@ -281,11 +304,44 @@ def _open_dataset_parent(path: SafeDatasetPath, *, create: bool) -> Iterator[int
             next_fd = _open_directory_at(
                 current_fd, component, create=create, flags=directory_flags
             )
-            os.close(current_fd)
+            try:
+                _require_directory_beneath(root_fd, next_fd)
+            except OSError:
+                os.close(next_fd)
+                raise
+            if current_fd != root_fd:
+                os.close(current_fd)
             current_fd = next_fd
-        yield current_fd
+        _require_directory_beneath(root_fd, current_fd)
+        yield _OpenedDatasetParent(root_fd=root_fd, parent_fd=current_fd)
+    finally:
+        if current_fd != root_fd:
+            os.close(current_fd)
+        os.close(root_fd)
+
+
+def _require_directory_beneath(root_fd: int, directory_fd: int) -> None:
+    """Reject a directory FD whose current ancestry no longer reaches root_fd."""
+    root_stat = os.fstat(root_fd)
+    current_fd = os.dup(directory_fd)
+    directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    try:
+        while True:
+            current_stat = os.fstat(current_fd)
+            if current_stat.st_dev == root_stat.st_dev and current_stat.st_ino == root_stat.st_ino:
+                return
+            parent_fd = os.open("..", directory_flags, dir_fd=current_fd)
+            parent_stat = os.fstat(parent_fd)
+            os.close(current_fd)
+            current_fd = parent_fd
+            if (
+                parent_stat.st_dev == current_stat.st_dev
+                and parent_stat.st_ino == current_stat.st_ino
+            ):
+                break
     finally:
         os.close(current_fd)
+    raise OSError(errno.EXDEV, "dataset directory moved outside the trusted root")
 
 
 def _open_directory_at(parent_fd: int, name: str, *, create: bool, flags: int) -> int:

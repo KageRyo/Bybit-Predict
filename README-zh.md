@@ -150,6 +150,8 @@ schema `1` 與 source `Bybit V5`。
 CLI 的 dataset 路徑必須解析在當次執行的目前工作目錄內；文件中的
 `data/<file>` 用法仍可使用，但 `..` traversal、root 以外的路徑和 symlink component
 會在 backtest 執行前被拒絕。
+CLI 也要求 CSV 與 manifest 是一般檔案；保存時會拒絕已有 hard link 的輸出，FIFO
+等特殊檔案則會在不 blocking 的情況下被拒絕。
 
 ## Discord slash commands
 
