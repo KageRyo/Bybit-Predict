@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from bybit_predict.exceptions import MarketDataError
+from bybit_predict.exceptions import BybitAPIError, MarketDataError
 from bybit_predict.market.bybit import BybitV5MarketClient
 
 
@@ -109,7 +109,7 @@ def test_get_candles_reports_final_retryable_bybit_api_error_after_exhaustion() 
         sleep=sleeps.append,
     )
 
-    with pytest.raises(MarketDataError, match="10016: server unavailable") as error:
+    with pytest.raises(BybitAPIError, match="10016: server unavailable") as error:
         client.get_candles("BTCUSDT")
 
     assert error.value.ret_code == 10016
