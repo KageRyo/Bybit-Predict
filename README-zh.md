@@ -5,9 +5,10 @@
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
 
-> **目前正式版本：v4.1.4。**此 patch 將完全標準的 GPL v2 授權條文納入所有
-> distribution，使 GitHub 能正確辨識 repository license 為 GPL-2.0；它承接 v4.1.1
-> 的 PyPI 發行與 v4.1.0 的可重現歷史回測。前一個 legacy release 為 v3.1。
+> **目前正式版本：v4.1.5。**此版本強化 Candle 驗證與 transient API 處理、驗證回測
+> interval continuity 與保存資料 provenance、最佳化 SMA baseline、釐清 metric 語意，
+> 並加強 CI 與 protected-main governance。它承接 v4.1.1 的 PyPI 發行與 v4.1.0 的
+> 可重現歷史回測；前一個 legacy release 為 v3.1。
 
 [English](README.md)
 
@@ -267,6 +268,8 @@ GitHub Actions secrets 都不保存長效 PyPI API token。
 - **v4.1.3：**CI dependency maintenance 與完整 GPL v2 授權條文還原。
 - **v4.1.4：**所有 distribution 使用標準 GPL v2 授權條文，並由 GitHub 辨識為
   GPL-2.0。
+- **v4.1.5：**Candle 與 API robustness、interval 與 dataset replay 驗證、linear SMA
+  baseline、明確 metric 語意、強制品質 gate，以及 protected-main governance。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史

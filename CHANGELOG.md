@@ -5,6 +5,34 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [4.1.5] - 2026-09-16
+
+### Added
+
+- Persisted backtest datasets now include a validated CSV sidecar manifest with
+  provenance metadata and a content hash, and replay rejects missing,
+  mismatched, malformed, or tampered pairs (#47).
+- Backtest execution now rejects candle interval gaps before strategy analysis
+  (#48).
+
+### Changed
+
+- Transient Bybit V5 API errors now use typed, bounded retries while preserving
+  the original response code and message (#49).
+- The 10/20 SMA direction baseline now uses fixed-size rolling windows with
+  linear-time computation and unchanged execution semantics (#51).
+- Backtest output and documentation identify `directional_accuracy` as
+  close-to-close, including the distinction between directional correctness and
+  open-to-close trade profitability across gaps (#52).
+- CI enforces an 80% total coverage floor and treats Pyright missing imports as
+  errors; `main` is protected by pull-request and required-check rules (#53,
+  #54).
+
+### Fixed
+
+- Candle validation now rejects non-finite and non-positive OHLC values and
+  non-finite or negative volume (#50).
+
 ## [4.1.4] - 2026-08-12
 
 ### Fixed
