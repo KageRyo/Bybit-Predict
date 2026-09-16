@@ -36,9 +36,33 @@ bybit-predict backtest BTCUSDT \
 ```
 
 The CSV is headered and normalized as `timestamp,open,high,low,close,volume`.
-It is intentionally not created automatically or committed to Git. The caller
-is responsible for retaining the input file, command, package version, and any
-non-default fee or slippage settings needed to reproduce a report.
+Saving it also writes the required sidecar `<csv-name>.manifest.json`, for
+example `btc-2024-4h.csv.manifest.json`. The sidecar is stable sorted-key JSON
+with exactly these fields: `schema_version`, `symbol`, `category`, `interval`,
+`source`, `requested_start`, `requested_end`, `generated_at`, and
+`content_sha256`. It uses schema `1`, source `Bybit V5`, canonical UTC ISO-8601
+timestamps, and a SHA-256 hash of the exact UTF-8 bytes written to the CSV.
+
+When `--data` is used, the manifest is mandatory. Before filtering candles or
+running the engine, the CLI validates the JSON, schema, source, metadata, the
+normalized symbol/category/interval, the requested half-open UTC range, and
+the CSV content hash. Missing, malformed, unsupported, mismatched, or tampered
+datasets fail with `BacktestError`; there is no legacy CSV-only bypass. Keep
+the CSV and its sidecar together, along with the replay command, package
+version, and any non-default fee or slippage settings needed to reproduce a
+report.
+
+For the CLI, dataset paths must resolve under the current working directory,
+which is the trusted root for that invocation. The documented relative
+`data/<file>` workflow remains supported; `..` traversal, paths outside the
+root, and symlink components are rejected before dataset I/O or backtest
+execution. The CSV and derived manifest are opened relative to an anchored
+trusted-root directory descriptor without following symlinks. Platforms
+without the required descriptor-relative no-follow support fail closed with
+`BacktestError`. This boundary applies at the CLI entry point; direct library
+calls can still use caller-managed paths such as test or temporary directories.
+The CLI requires both dataset files to be regular files; existing hard-linked
+outputs and special files such as FIFOs are rejected without blocking.
 
 Bybit's [V5 K-line endpoint](https://bybit-exchange.github.io/docs/v5/market/kline)
 supplies K-lines in reverse start-time order and limits each request to 1,000
