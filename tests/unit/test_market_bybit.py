@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from bybit_predict.exceptions import MarketDataError
+from bybit_predict.exceptions import BybitAPIError, MarketDataError
 from bybit_predict.market.bybit import BybitV5MarketClient
 
 
@@ -72,6 +72,67 @@ def test_get_candles_retries_transport_failure_with_a_bound() -> None:
 
     assert len(client.get_candles("BTCUSDT", limit=2)) == 2
     assert len(session.kline_calls) == 2
+
+
+def test_get_candles_retries_retryable_bybit_api_error_before_succeeding() -> None:
+    sleeps: list[float] = []
+    session = FakeSession(
+        klines=[
+            {"retCode": 10000, "retMsg": "server timeout"},
+            kline_response(),
+        ]
+    )
+    client = BybitV5MarketClient(
+        session=session,
+        max_retries=2,
+        retry_delay_seconds=0.25,
+        sleep=sleeps.append,
+    )
+
+    assert len(client.get_candles("BTCUSDT", limit=2)) == 2
+    assert len(session.kline_calls) == 2
+    assert sleeps == [0.25]
+
+
+def test_get_candles_reports_final_retryable_bybit_api_error_after_exhaustion() -> None:
+    sleeps: list[float] = []
+    session = FakeSession(
+        klines=[
+            {"retCode": 10006, "retMsg": "rate limit"},
+            {"retCode": 10016, "retMsg": "server unavailable"},
+        ]
+    )
+    client = BybitV5MarketClient(
+        session=session,
+        max_retries=2,
+        retry_delay_seconds=0.25,
+        sleep=sleeps.append,
+    )
+
+    with pytest.raises(BybitAPIError, match="10016: server unavailable") as error:
+        client.get_candles("BTCUSDT")
+
+    assert error.value.ret_code == 10016
+    assert error.value.ret_message == "server unavailable"
+    assert len(session.kline_calls) == 2
+    assert sleeps == [0.25]
+
+
+def test_get_candles_does_not_retry_non_retryable_bybit_api_error() -> None:
+    sleeps: list[float] = []
+    session = FakeSession(
+        klines=[
+            {"retCode": 10001, "retMsg": "bad request"},
+            kline_response(),
+        ]
+    )
+    client = BybitV5MarketClient(session=session, max_retries=2, sleep=sleeps.append)
+
+    with pytest.raises(MarketDataError, match="10001: bad request"):
+        client.get_candles("BTCUSDT")
+
+    assert len(session.kline_calls) == 1
+    assert sleeps == []
 
 
 def test_get_candles_rejects_bybit_api_error() -> None:
