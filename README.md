@@ -78,16 +78,15 @@ pipx install bybit-predict
 ```bash
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
-python -m venv .venv
+uv venv --python 3.11 .venv
 source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-python -m pip install --upgrade pip
-python -m pip install .
+uv pip install .
 ```
 
 For contributors, install development and optional Discord dependencies:
 
 ```bash
-python -m pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ## CLI
@@ -268,6 +267,11 @@ ruff format --check .
 pyright
 pytest
 ```
+
+`pytest` fails when total coverage falls below the **80%** floor (the current
+baseline is approximately 84%). Pyright remains in basic mode but now treats
+missing imports as errors; the development extra installs the dependencies
+needed by the checks.
 
 Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for local setup and the required

@@ -17,10 +17,9 @@ strategies.
 ```bash
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
-python -m venv .venv
+uv venv --python 3.11 .venv
 source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 Run the same checks used by CI before opening a pull request:
@@ -31,6 +30,12 @@ ruff format --check .
 pyright
 pytest
 ```
+
+The test command enforces a total coverage floor of **80%**. The current
+project baseline is approximately 84%, so the initial floor leaves room for
+platform and dependency variation while still preventing a substantial
+regression. Pyright runs in basic mode but treats missing imports as errors;
+dependencies expected by the project are installed by the `.[dev]` extra.
 
 ## Branches and pull requests
 

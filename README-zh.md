@@ -67,16 +67,15 @@ pipx install bybit-predict
 ```bash
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
-python -m venv .venv
+uv venv --python 3.11 .venv
 source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-python -m pip install --upgrade pip
-python -m pip install .
+uv pip install .
 ```
 
 若要開發、執行完整測試及 Discord 介面：
 
 ```bash
-python -m pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ## CLI
@@ -242,6 +241,10 @@ ruff format --check .
 pyright
 pytest
 ```
+
+`pytest` 會在總 coverage 低於 **80%** 時失敗（目前基線約為 84%）。Pyright
+仍使用 basic mode，但會把 missing imports 視為 error；development extra 會安裝品質檢查
+所需的相依套件。
 
 PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱
 [CONTRIBUTING.md](CONTRIBUTING.md)，其中包含開發設定與必須遵守的
