@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from statistics import fmean
 
@@ -195,10 +196,17 @@ class BacktestEngine:
     def _sma_direction_return(self, candles: tuple[Candle, ...]) -> tuple[float, int]:
         equity = 1.0
         trade_count = 0
-        for signal_index in range(self.analysis_window - 1, len(candles) - 1):
-            closes = tuple(candle.close for candle in candles[: signal_index + 1])
-            short_average = fmean(closes[-10:])
-            long_average = fmean(closes[-20:])
+        short_closes: deque[float] = deque(maxlen=10)
+        long_closes: deque[float] = deque(maxlen=20)
+
+        for signal_index in range(len(candles) - 1):
+            close = candles[signal_index].close
+            short_closes.append(close)
+            long_closes.append(close)
+            if signal_index < self.analysis_window - 1:
+                continue
+            short_average = fmean(short_closes)
+            long_average = fmean(long_closes)
             if short_average == long_average:
                 continue
             trend = SignalTrend.BULLISH if short_average > long_average else SignalTrend.BEARISH
