@@ -18,7 +18,7 @@ from bybit_predict.backtest.data import (
 from bybit_predict.backtest.engine import BacktestEngine
 from bybit_predict.backtest.intervals import normalize_backtest_interval
 from bybit_predict.config import bybit_testnet_enabled
-from bybit_predict.exceptions import BybitPredictError, SymbolNotFoundError
+from bybit_predict.exceptions import BacktestError, BybitPredictError, SymbolNotFoundError
 from bybit_predict.market.base import HistoricalMarketDataClient
 from bybit_predict.market.bybit import BybitV5MarketClient
 from bybit_predict.presentation import format_backtest_result_text, format_result_text
@@ -153,10 +153,18 @@ def _run_backtest(
         interval = normalize_backtest_interval(arguments.interval)
         if arguments.data is not None and arguments.save_data is not None:
             raise ValueError("--data and --save-data cannot be used together")
-        if arguments.data is not None:
+        data_path = (
+            _resolve_cli_dataset_path(arguments.data) if arguments.data is not None else None
+        )
+        save_data_path = (
+            _resolve_cli_dataset_path(arguments.save_data)
+            if arguments.save_data is not None
+            else None
+        )
+        if data_path is not None:
             candles = filter_candles(
                 load_candles_csv(
-                    arguments.data,
+                    data_path,
                     symbol=symbol,
                     category="linear",
                     interval=interval,
@@ -172,9 +180,9 @@ def _run_backtest(
                 subject = symbol or "The requested symbol"
                 raise SymbolNotFoundError(f"{subject} is not an active Bybit symbol")
             candles = market.get_historical_candles(symbol, interval=interval, start=start, end=end)
-            if arguments.save_data is not None:
+            if save_data_path is not None:
                 save_candles_csv(
-                    arguments.save_data,
+                    save_data_path,
                     candles,
                     symbol=symbol,
                     category="linear",
@@ -198,3 +206,23 @@ def _run_backtest(
 
 def _default_market_client() -> BybitV5MarketClient:
     return BybitV5MarketClient(testnet=bybit_testnet_enabled())
+
+
+def _resolve_cli_dataset_path(path: Path) -> Path:
+    """Resolve a CLI dataset path and keep it inside the trusted working root."""
+    trusted_root = Path.cwd().resolve()
+    if ".." in path.parts:
+        raise BacktestError(
+            "Dataset path must stay within the trusted working-directory root; "
+            "path traversal components are not allowed"
+        )
+    try:
+        resolved = (path if path.is_absolute() else trusted_root / path).resolve(strict=False)
+    except (OSError, RuntimeError) as error:
+        raise BacktestError(f"Could not resolve dataset path {path}: {error}") from error
+    if resolved == trusted_root or not resolved.is_relative_to(trusted_root):
+        raise BacktestError(
+            "Dataset path must stay within the trusted working-directory root; "
+            "paths outside it or through symlink escapes are not allowed"
+        )
+    return resolved

@@ -161,6 +161,9 @@ malformed, mismatched, or tampered CSV/manifest pairs before replay.
 The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
 `source`, `requested_start`, `requested_end`, `generated_at`, and
 `content_sha256` (schema `1`, source `Bybit V5`).
+CLI dataset paths must resolve under the current working directory: the
+documented `data/<file>` form works, while `..` traversal, paths outside that
+root, and symlink escapes are rejected before a backtest runs.
 
 ## Discord slash commands
 

@@ -147,6 +147,9 @@ metric 定義、baseline 語意、manifest 驗證、重現方式和重要限制�
 sidecar 只包含 `schema_version`、`symbol`、`category`、`interval`、`source`、
 `requested_start`、`requested_end`、`generated_at` 與 `content_sha256` 九個欄位，使用
 schema `1` 與 source `Bybit V5`。
+CLI 的 dataset 路徑必須解析在當次執行的目前工作目錄內；文件中的
+`data/<file>` 用法仍可使用，但 `..` traversal、root 以外的路徑和 symlink escape
+會在 backtest 執行前被拒絕。
 
 ## Discord slash commands
 

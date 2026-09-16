@@ -142,18 +142,20 @@ def test_load_requires_the_csv_sidecar_manifest(
     path = tmp_path / "candles.csv"
     save_candles_csv(path, candles, **_manifest_arguments())
     (tmp_path / "candles.csv.manifest.json").unlink()
+    expected = _manifest_arguments()
 
     with pytest.raises(BacktestError, match="manifest.*required"):
-        load_candles_csv(path, **_manifest_arguments())
+        load_candles_csv(path, **expected)
 
 
 def test_load_rejects_malformed_manifest_json(candles: tuple[Candle, ...], tmp_path: Path) -> None:
     path = tmp_path / "candles.csv"
     save_candles_csv(path, candles, **_manifest_arguments())
     (tmp_path / "candles.csv.manifest.json").write_text("{not json", encoding="utf-8")
+    expected = _manifest_arguments()
 
     with pytest.raises(BacktestError, match="manifest.*JSON"):
-        load_candles_csv(path, **_manifest_arguments())
+        load_candles_csv(path, **expected)
 
 
 def test_load_rejects_unsupported_manifest_schema_version(
@@ -165,9 +167,10 @@ def test_load_rejects_unsupported_manifest_schema_version(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["schema_version"] = 2
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    expected = _manifest_arguments()
 
     with pytest.raises(BacktestError, match="Unsupported.*schema"):
-        load_candles_csv(path, **_manifest_arguments())
+        load_candles_csv(path, **expected)
 
 
 def test_load_rejects_tampered_csv_content_hash(
@@ -176,9 +179,10 @@ def test_load_rejects_tampered_csv_content_hash(
     path = tmp_path / "candles.csv"
     save_candles_csv(path, candles, **_manifest_arguments())
     path.write_bytes(path.read_bytes() + b"\n")
+    expected = _manifest_arguments()
 
     with pytest.raises(BacktestError, match="content hash mismatch"):
-        load_candles_csv(path, **_manifest_arguments())
+        load_candles_csv(path, **expected)
 
 
 def test_csv_rejects_duplicate_timestamps(tmp_path: Path) -> None:
@@ -202,9 +206,10 @@ def test_csv_rejects_duplicate_timestamps(tmp_path: Path) -> None:
     (tmp_path / "duplicate.csv.manifest.json").write_text(
         json.dumps(manifest, sort_keys=True), encoding="utf-8"
     )
+    expected = _manifest_arguments()
 
     with pytest.raises(BacktestError, match="duplicate"):
-        load_candles_csv(path, **_manifest_arguments())
+        load_candles_csv(path, **expected)
 
 
 def test_parse_utc_datetime_handles_dates_and_rejects_naive_timestamps() -> None:

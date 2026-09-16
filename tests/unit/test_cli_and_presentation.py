@@ -4,6 +4,8 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
+import pytest
+
 from bybit_predict.cli import build_parser, main
 from bybit_predict.models import Candle
 from bybit_predict.presentation import format_result_text
@@ -52,8 +54,9 @@ def test_presentation_labels_rule_based_results(candles: tuple) -> None:
 
 
 def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
-    candles: tuple[Candle, ...], tmp_path: Path, capsys: object
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.chdir(tmp_path)
     next_candle = Candle(
         timestamp=candles[-1].timestamp + timedelta(hours=4),
         open=candles[-1].close,
@@ -78,7 +81,7 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
             assert interval == "240"
             return historical
 
-    saved = tmp_path / "btc-2026.csv"
+    saved = Path("data/btc-2026.csv")
     status = main(
         [
             "backtest",
@@ -157,3 +160,84 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
 
     assert rejected_status == 1
     assert "manifest" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+
+
+@pytest.mark.parametrize("option", ("--data", "--save-data"))
+def test_backtest_cli_rejects_dataset_path_traversal(
+    candles: tuple[Candle, ...],
+    tmp_path: Path,
+    capsys: object,
+    monkeypatch: pytest.MonkeyPatch,
+    option: str,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    filename = f"{tmp_path.name}-escape.csv"
+    unsafe_path = f"../{filename}"
+
+    class Market:
+        def is_valid_symbol(self, symbol: str) -> bool:
+            return True
+
+        def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
+            raise AssertionError("Backtest should not request live analysis candles")
+
+        def get_historical_candles(
+            self, symbol: str, *, interval: str, start: object, end: object
+        ) -> tuple[Candle, ...]:
+            return candles
+
+    status = main(
+        [
+            "backtest",
+            "BTCUSDT",
+            "--start",
+            "2026-01-01",
+            "--end",
+            "2026-01-10",
+            "--window",
+            "42",
+            option,
+            unsafe_path,
+        ],
+        market_factory=lambda: Market(),  # type: ignore[return-value]
+    )
+
+    escaped_file = tmp_path.parent / filename
+    escaped_manifest = tmp_path.parent / f"{filename}.manifest.json"
+    escaped_file.unlink(missing_ok=True)
+    escaped_manifest.unlink(missing_ok=True)
+
+    assert status == 1
+    assert "trusted" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+
+
+def test_backtest_cli_rejects_dataset_symlink_escape(
+    tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    outside = tmp_path.parent / f"{tmp_path.name}-outside"
+    outside.mkdir()
+    data_link = tmp_path / "data"
+    data_link.symlink_to(outside, target_is_directory=True)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--data",
+                "data/escape.csv",
+            ]
+        )
+    finally:
+        data_link.unlink()
+        outside.rmdir()
+
+    assert status == 1
+    assert "trusted" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
