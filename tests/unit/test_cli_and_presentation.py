@@ -1,15 +1,41 @@
 from __future__ import annotations
 
 import json
-from datetime import timedelta
+import os
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
+from bybit_predict.backtest.data import save_candles_csv
 from bybit_predict.cli import build_parser, main
 from bybit_predict.models import Candle
 from bybit_predict.presentation import format_result_text
 from bybit_predict.services.predictor import PredictionService
+
+
+def _historical_candles(candles: tuple[Candle, ...]) -> tuple[Candle, ...]:
+    next_candle = Candle(
+        timestamp=candles[-1].timestamp + timedelta(hours=4),
+        open=candles[-1].close,
+        high=candles[-1].close + 2,
+        low=candles[-1].close - 1,
+        close=candles[-1].close + 1,
+        volume=candles[-1].volume + 1,
+    )
+    return candles + (next_candle,)
+
+
+def _save_cli_dataset(path: Path, candles: tuple[Candle, ...]) -> None:
+    save_candles_csv(
+        path,
+        _historical_candles(candles),
+        symbol="BTCUSDT",
+        category="linear",
+        interval="240",
+        requested_start=datetime(2026, 1, 1, tzinfo=UTC),
+        requested_end=datetime(2026, 1, 10, tzinfo=UTC),
+    )
 
 
 def test_cli_prints_shared_service_result(candles: tuple) -> None:
@@ -57,15 +83,7 @@ def test_backtest_cli_downloads_and_optionally_saves_reproducible_data(
     candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    next_candle = Candle(
-        timestamp=candles[-1].timestamp + timedelta(hours=4),
-        open=candles[-1].close,
-        high=candles[-1].close + 2,
-        low=candles[-1].close - 1,
-        close=candles[-1].close + 1,
-        volume=candles[-1].volume + 1,
-    )
-    historical = candles + (next_candle,)
+    historical = _historical_candles(candles)
 
     class Market:
         def is_valid_symbol(self, symbol: str) -> bool:
@@ -186,29 +204,32 @@ def test_backtest_cli_rejects_dataset_path_traversal(
         ) -> tuple[Candle, ...]:
             return candles
 
-    status = main(
-        [
-            "backtest",
-            "BTCUSDT",
-            "--start",
-            "2026-01-01",
-            "--end",
-            "2026-01-10",
-            "--window",
-            "42",
-            option,
-            unsafe_path,
-        ],
-        market_factory=lambda: Market(),  # type: ignore[return-value]
-    )
-
     escaped_file = tmp_path.parent / filename
     escaped_manifest = tmp_path.parent / f"{filename}.manifest.json"
-    escaped_file.unlink(missing_ok=True)
-    escaped_manifest.unlink(missing_ok=True)
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                option,
+                unsafe_path,
+            ],
+            market_factory=lambda: Market(),  # type: ignore[return-value]
+        )
 
-    assert status == 1
-    assert "trusted" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+        assert status == 1
+        assert not escaped_file.exists()
+        assert not escaped_manifest.exists()
+        assert "trusted" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        escaped_file.unlink(missing_ok=True)
+        escaped_manifest.unlink(missing_ok=True)
 
 
 def test_backtest_cli_rejects_dataset_symlink_escape(
@@ -241,3 +262,183 @@ def test_backtest_cli_rejects_dataset_symlink_escape(
 
     assert status == 1
     assert "trusted" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+
+
+def test_backtest_cli_rejects_manifest_symlink_escape_on_load(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_path = tmp_path / "data" / "candles.csv"
+    data_path.parent.mkdir()
+    _save_cli_dataset(data_path, candles)
+    manifest_path = data_path.with_name(f"{data_path.name}.manifest.json")
+    outside_manifest = tmp_path.parent / f"{tmp_path.name}-load-manifest.json"
+    sentinel = manifest_path.read_bytes()
+    outside_manifest.write_bytes(sentinel)
+    manifest_path.unlink()
+    manifest_path.symlink_to(outside_manifest)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--data",
+                "data/candles.csv",
+            ]
+        )
+
+        assert status == 1
+        assert manifest_path.is_symlink()
+        assert outside_manifest.read_bytes() == sentinel
+        assert "safe" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        manifest_path.unlink(missing_ok=True)
+        outside_manifest.unlink(missing_ok=True)
+        data_path.unlink(missing_ok=True)
+        data_path.parent.rmdir()
+
+
+def test_backtest_cli_rejects_manifest_symlink_escape_on_save(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    data_path = data_dir / "candles.csv"
+    manifest_path = data_path.with_name(f"{data_path.name}.manifest.json")
+    outside_manifest = tmp_path.parent / f"{tmp_path.name}-save-manifest.json"
+    sentinel = b"keep this outside file unchanged\n"
+    outside_manifest.write_bytes(sentinel)
+    manifest_path.symlink_to(outside_manifest)
+
+    class Market:
+        def is_valid_symbol(self, symbol: str) -> bool:
+            return symbol == "BTCUSDT"
+
+        def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
+            raise AssertionError("Live analysis data should not be requested by backtest")
+
+        def get_historical_candles(
+            self, symbol: str, *, interval: str, start: object, end: object
+        ) -> tuple[Candle, ...]:
+            return _historical_candles(candles)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--save-data",
+                "data/candles.csv",
+            ],
+            market_factory=lambda: Market(),  # type: ignore[return-value]
+        )
+
+        assert status == 1
+        assert manifest_path.is_symlink()
+        assert outside_manifest.read_bytes() == sentinel
+        assert "safe" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        manifest_path.unlink(missing_ok=True)
+        outside_manifest.unlink(missing_ok=True)
+        data_path.unlink(missing_ok=True)
+        data_dir.rmdir()
+
+
+def test_backtest_cli_rejects_parent_directory_swap_after_path_validation(
+    candles: tuple[Candle, ...], tmp_path: Path, capsys: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    data_path = data_dir / "candles.csv"
+    _save_cli_dataset(data_path, candles)
+
+    outside = tmp_path.parent / f"{tmp_path.name}-parent-swap-outside"
+    outside.mkdir()
+    outside_data_path = outside / "candles.csv"
+    _save_cli_dataset(outside_data_path, candles)
+    outside_csv_sentinel = outside_data_path.read_bytes()
+    outside_manifest_path = outside_data_path.with_name(f"{outside_data_path.name}.manifest.json")
+    outside_manifest_sentinel = outside_manifest_path.read_bytes()
+
+    trusted_root = Path.resolve(tmp_path)
+    original_resolve = Path.resolve
+    original_open = os.open
+    data_backup = tmp_path / "data-before-parent-swap"
+    swapped = False
+
+    def swap_parent_directory() -> None:
+        nonlocal swapped
+        if swapped:
+            return
+        data_dir.rename(data_backup)
+        data_dir.symlink_to(outside, target_is_directory=True)
+        swapped = True
+
+    def racing_resolve(candidate: Path, strict: bool = False) -> Path:
+        resolved = original_resolve(candidate, strict=strict)
+        if not swapped and candidate == data_path:
+            swap_parent_directory()
+        return resolved
+
+    def racing_open(
+        path: str | os.PathLike[str],
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        file_descriptor = original_open(path, flags, mode, dir_fd=dir_fd)
+        if not swapped and dir_fd is None and Path(path) == trusted_root:
+            swap_parent_directory()
+        return file_descriptor
+
+    monkeypatch.setattr(Path, "resolve", racing_resolve)
+    monkeypatch.setattr(os, "open", racing_open)
+
+    try:
+        status = main(
+            [
+                "backtest",
+                "BTCUSDT",
+                "--start",
+                "2026-01-01",
+                "--end",
+                "2026-01-10",
+                "--window",
+                "42",
+                "--data",
+                "data/candles.csv",
+            ]
+        )
+
+        assert status == 1
+        assert swapped
+        assert outside_data_path.read_bytes() == outside_csv_sentinel
+        assert outside_manifest_path.read_bytes() == outside_manifest_sentinel
+        assert "safe" in capsys.readouterr().err.lower()  # type: ignore[attr-defined]
+    finally:
+        if data_dir.is_symlink():
+            data_dir.unlink()
+        if data_backup.exists():
+            data_backup.rename(data_dir)
+        data_path.unlink(missing_ok=True)
+        data_path.with_name(f"{data_path.name}.manifest.json").unlink(missing_ok=True)
+        data_dir.rmdir()
+        outside_data_path.unlink(missing_ok=True)
+        outside_manifest_path.unlink(missing_ok=True)
+        outside.rmdir()

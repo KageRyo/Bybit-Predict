@@ -163,7 +163,7 @@ The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
 `content_sha256` (schema `1`, source `Bybit V5`).
 CLI dataset paths must resolve under the current working directory: the
 documented `data/<file>` form works, while `..` traversal, paths outside that
-root, and symlink escapes are rejected before a backtest runs.
+root, and symlink components are rejected before a backtest runs.
 
 ## Discord slash commands
 

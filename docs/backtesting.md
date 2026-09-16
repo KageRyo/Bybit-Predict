@@ -55,9 +55,12 @@ report.
 For the CLI, dataset paths must resolve under the current working directory,
 which is the trusted root for that invocation. The documented relative
 `data/<file>` workflow remains supported; `..` traversal, paths outside the
-root, and symlink escapes are rejected before dataset I/O or backtest
-execution. This boundary applies at the CLI entry point; direct library calls
-can still use caller-managed paths such as test or temporary directories.
+root, and symlink components are rejected before dataset I/O or backtest
+execution. The CSV and derived manifest are opened relative to an anchored
+trusted-root directory descriptor without following symlinks. Platforms
+without the required descriptor-relative no-follow support fail closed with
+`BacktestError`. This boundary applies at the CLI entry point; direct library
+calls can still use caller-managed paths such as test or temporary directories.
 
 Bybit's [V5 K-line endpoint](https://bybit-exchange.github.io/docs/v5/market/kline)
 supplies K-lines in reverse start-time order and limits each request to 1,000

@@ -11,12 +11,15 @@ from pathlib import Path
 
 from bybit_predict.backtest.data import (
     filter_candles,
-    load_candles_csv,
     parse_utc_datetime,
-    save_candles_csv,
 )
 from bybit_predict.backtest.engine import BacktestEngine
 from bybit_predict.backtest.intervals import normalize_backtest_interval
+from bybit_predict.backtest.safe_data import (
+    SafeDatasetPath,
+    load_candles_csv_safely,
+    save_candles_csv_safely,
+)
 from bybit_predict.config import bybit_testnet_enabled
 from bybit_predict.exceptions import BacktestError, BybitPredictError, SymbolNotFoundError
 from bybit_predict.market.base import HistoricalMarketDataClient
@@ -163,7 +166,7 @@ def _run_backtest(
         )
         if data_path is not None:
             candles = filter_candles(
-                load_candles_csv(
+                load_candles_csv_safely(
                     data_path,
                     symbol=symbol,
                     category="linear",
@@ -181,7 +184,7 @@ def _run_backtest(
                 raise SymbolNotFoundError(f"{subject} is not an active Bybit symbol")
             candles = market.get_historical_candles(symbol, interval=interval, start=start, end=end)
             if save_data_path is not None:
-                save_candles_csv(
+                save_candles_csv_safely(
                     save_data_path,
                     candles,
                     symbol=symbol,
@@ -208,21 +211,30 @@ def _default_market_client() -> BybitV5MarketClient:
     return BybitV5MarketClient(testnet=bybit_testnet_enabled())
 
 
-def _resolve_cli_dataset_path(path: Path) -> Path:
-    """Resolve a CLI dataset path and keep it inside the trusted working root."""
-    trusted_root = Path.cwd().resolve()
+def _resolve_cli_dataset_path(path: Path) -> SafeDatasetPath:
+    """Reduce a CLI dataset path to components below the trusted working root."""
+    try:
+        trusted_root = Path.cwd().resolve()
+    except (OSError, RuntimeError) as error:
+        raise BacktestError(
+            f"Could not resolve the trusted working-directory root: {error}"
+        ) from error
     if ".." in path.parts:
         raise BacktestError(
             "Dataset path must stay within the trusted working-directory root; "
             "path traversal components are not allowed"
         )
     try:
-        resolved = (path if path.is_absolute() else trusted_root / path).resolve(strict=False)
-    except (OSError, RuntimeError) as error:
-        raise BacktestError(f"Could not resolve dataset path {path}: {error}") from error
-    if resolved == trusted_root or not resolved.is_relative_to(trusted_root):
+        candidate = path if path.is_absolute() else trusted_root / path
+        relative = candidate.relative_to(trusted_root)
+    except ValueError as error:
         raise BacktestError(
             "Dataset path must stay within the trusted working-directory root; "
-            "paths outside it or through symlink escapes are not allowed"
-        )
-    return resolved
+            "paths outside it or symlink components are not allowed"
+        ) from error
+    if not relative.parts:
+        raise BacktestError("Dataset path must identify a file below the trusted working root")
+    try:
+        return SafeDatasetPath(trusted_root=trusted_root, relative_parts=relative.parts)
+    except ValueError as error:
+        raise BacktestError(f"Invalid dataset path {path}: {error}") from error
