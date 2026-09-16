@@ -161,6 +161,11 @@ malformed, mismatched, or tampered CSV/manifest pairs before replay.
 The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
 `source`, `requested_start`, `requested_end`, `generated_at`, and
 `content_sha256` (schema `1`, source `Bybit V5`).
+The report labels the public `directional_accuracy` field as **close-to-close
+directional accuracy**: it compares the signal candle close with the next
+candle close, not the next candle's open-to-close return. An adverse gap can
+therefore make this metric correct while the simulated trade loses money; use
+win rate and return metrics for execution outcomes.
 CLI dataset paths must resolve under the current working directory: the
 documented `data/<file>` form works, while `..` traversal, paths outside that
 root, and symlink components are rejected before a backtest runs.
@@ -253,7 +258,7 @@ handling, and bearish Fibonacci label ordering; the exact compatibility
 baseline and retained semantics are documented in
 [legacy strategy migration notes](docs/legacy-strategy-changes.md).
 
-The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating directional accuracy, win rate, average return, maximum drawdown, and a zero-risk-rate Sharpe ratio. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](docs/backtesting.md) for the exact rules and limitations. Until published results are independently interpreted in context, this project makes no claim that its signals predict future prices.
+The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating close-to-close directional accuracy, win rate, average return, maximum drawdown, and a zero-risk-rate Sharpe ratio. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](docs/backtesting.md) for the exact rules and limitations. Until published results are independently interpreted in context, this project makes no claim that its signals predict future prices.
 
 ## Development and quality checks
 

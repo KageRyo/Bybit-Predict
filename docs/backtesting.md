@@ -121,12 +121,18 @@ All reported returns are decimal ratios rendered as percentages.
 
 | Metric | Definition |
 | --- | --- |
-| Directional accuracy | Share of non-neutral signals whose predicted direction agrees with the next candle close versus the signal candle close. A flat next close is not a correct directional prediction. |
+| Close-to-close directional accuracy | Share of non-neutral signals whose predicted direction agrees with the next candle close versus the signal candle close. A flat next close is not a correct directional prediction. The public result field remains `directional_accuracy` for compatibility. |
 | Win rate | Share of simulated trades with a strictly positive net return after declared fees and slippage. |
 | Average trade return | Arithmetic mean of simulated trade net returns. |
 | Strategy total return | Compounded return across every evaluation candle; neutral steps contribute zero return. |
 | Maximum drawdown | Largest peak-to-trough fall in the compounded strategy equity curve. |
 | Annualized Sharpe ratio | Mean per-candle strategy return divided by sample standard deviation, annualized with crypto's 365-day calendar. It is `N/A` when fewer than two returns exist or variation is zero. The risk-free rate is assumed to be zero. |
+
+Close-to-close directional accuracy deliberately does not compare the signal
+direction with the next candle's open-to-close trade return. An adverse gap at
+the next open can therefore produce a directionally correct close-to-close
+prediction while the simulated trade still loses money; use win rate and the
+return metrics to assess execution outcomes.
 
 The engine also reports two baselines over the same execution period:
 

@@ -9,6 +9,7 @@ from bybit_predict.backtest.engine import BacktestEngine
 from bybit_predict.backtest.metrics import annualized_sharpe, maximum_drawdown, periods_per_year
 from bybit_predict.exceptions import BacktestError
 from bybit_predict.models import Candle, PredictionResult, SignalTrend
+from bybit_predict.presentation import format_backtest_result_text
 
 
 def candle(index: int, *, open_price: float, close: float) -> Candle:
@@ -128,6 +129,25 @@ def test_engine_applies_fee_and_slippage_to_trade_returns() -> None:
     assert result.assumptions.fee_rate == 0.01
     assert result.assumptions.slippage_rate == 0.01
     assert result.baselines[0].total_return == pytest.approx(12.87 / 12.12 - 1 - 0.02)
+
+
+def test_directional_accuracy_is_explicitly_close_to_close_at_gap_open() -> None:
+    candles = (
+        candle(0, open_price=100, close=100),
+        candle(1, open_price=100, close=100),
+        candle(2, open_price=120, close=101),
+    )
+
+    result = BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
+        candles, symbol="BTCUSDT", interval="240"
+    )
+    report = format_backtest_result_text(result)
+
+    assert result.metrics.directional_accuracy == 1.0
+    assert result.metrics.win_rate == 0.0
+    assert result.trades[0].net_return < 0
+    assert "  Close-to-close directional accuracy: 100.00%" in report
+    assert "  Directional accuracy:" not in report
 
 
 def test_sma_baseline_does_not_build_full_close_prefix_each_step() -> None:

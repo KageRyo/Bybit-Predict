@@ -147,6 +147,10 @@ metric 定義、baseline 語意、manifest 驗證、重現方式和重要限制�
 sidecar 只包含 `schema_version`、`symbol`、`category`、`interval`、`source`、
 `requested_start`、`requested_end`、`generated_at` 與 `content_sha256` 九個欄位，使用
 schema `1` 與 source `Bybit V5`。
+輸出會將相容性保留的公開欄位 `directional_accuracy` 標示為
+**close-to-close directional accuracy**：它比較發出訊號那根 K 線的收盤價與下一根
+K 線的收盤價，不是比較下一根 K 線的開盤到收盤交易報酬。因此，即使遇到不利的跳空開盤，
+這個方向判斷仍可能正確而模擬交易卻虧損；執行結果應搭配 win rate 與報酬指標解讀。
 CLI 的 dataset 路徑必須解析在當次執行的目前工作目錄內；文件中的
 `data/<file>` 用法仍可使用，但 `..` traversal、root 以外的路徑和 symlink component
 會在 backtest 執行前被拒絕。
@@ -228,7 +232,7 @@ BybitV5MarketClient ──→ normalized UTC Candles
 
 `LegacyRuleBasedStrategy` 是刻意保留下來的歷史核心：它分類 K 線實體與影線、比較顯著多空量能，並從 IQR 和 percentile 算出選用的參考價位。明確命名策略後，未來新策略才能公平比較。v4 刻意修正 v3 的 zero/six-candle volume window、時間處理，以及 bearish Fibonacci label ordering；完整 compatibility baseline 與保留的語意請見 [legacy strategy migration notes](docs/legacy-strategy-changes.md)。
 
-**v4.1.0** 的 backtesting（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）先定義固定 trailing analysis window、下一根開盤進場、同根收盤出場，以及 neutral 訊號維持現金，再量測方向正確率、win rate、average return、maximum drawdown 與零 risk-free-rate Sharpe ratio；並與 buy-and-hold 和 10/20 SMA direction baseline 比較。確切規則與限制請見 [backtesting and evaluation](docs/backtesting.md)。在經過情境化的解讀前，本專案不宣稱訊號具有任何已驗證的預測能力。
+**v4.1.0** 的 backtesting（[#25](https://github.com/KageRyo/Bybit-Predict/issues/25)）先定義固定 trailing analysis window、下一根開盤進場、同根收盤出場，以及 neutral 訊號維持現金，再量測 close-to-close directional accuracy、win rate、average return、maximum drawdown 與零 risk-free-rate Sharpe ratio；並與 buy-and-hold 和 10/20 SMA direction baseline 比較。確切規則與限制請見 [backtesting and evaluation](docs/backtesting.md)。在經過情境化的解讀前，本專案不宣稱訊號具有任何已驗證的預測能力。
 
 ## 開發與品質檢查
 

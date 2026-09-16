@@ -66,7 +66,8 @@ def format_backtest_result_text(result: BacktestResult) -> str:
         f"  Slippage per side: {result.assumptions.slippage_rate:.4%}",
         "",
         "Performance:",
-        f"  Directional accuracy: {_format_percentage(metrics.directional_accuracy)}",
+        "  Close-to-close directional accuracy: "
+        f"{_format_percentage(metrics.directional_accuracy)}",
         f"  Win rate: {_format_percentage(metrics.win_rate)}",
         f"  Average trade return: {_format_percentage(metrics.average_trade_return)}",
         f"  Strategy total return: {_format_percentage(metrics.total_return)}",
