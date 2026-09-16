@@ -7,6 +7,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from statistics import fmean
 
+from bybit_predict.backtest.intervals import (
+    expected_next_timestamp,
+    normalize_backtest_interval,
+)
 from bybit_predict.backtest.metrics import annualized_sharpe, maximum_drawdown, periods_per_year
 from bybit_predict.backtest.models import (
     BacktestAssumptions,
@@ -47,7 +51,8 @@ class BacktestEngine:
         close. Neutral signals remain in cash for that candle. This deliberately
         prevents the strategy from using an execution candle to create its signal.
         """
-        self._validate_candles(candles)
+        normalized_interval = normalize_backtest_interval(interval)
+        self._validate_candles(candles, normalized_interval)
         assumptions = BacktestAssumptions(
             analysis_window=self.analysis_window,
             fee_rate=self.fee_rate,
@@ -61,7 +66,7 @@ class BacktestEngine:
 
         for signal_index in range(self.analysis_window - 1, len(candles) - 1):
             window = candles[signal_index - self.analysis_window + 1 : signal_index + 1]
-            signal = self.strategy.analyze(window, symbol=symbol, interval=interval)
+            signal = self.strategy.analyze(window, symbol=symbol, interval=normalized_interval)
             execution = candles[signal_index + 1]
             step_return = 0.0
             if signal.trend is not SignalTrend.NEUTRAL:
@@ -80,11 +85,11 @@ class BacktestEngine:
             step_returns=tuple(step_returns),
             directional_matches=tuple(directional_matches),
             equity_curve=tuple(equity_curve),
-            interval=interval,
+            interval=normalized_interval,
         )
         return BacktestResult(
             symbol=symbol.upper(),
-            interval=str(interval).upper(),
+            interval=normalized_interval,
             strategy=self.strategy.name,
             period_start=candles[0].timestamp,
             period_end=candles[-1].timestamp,
@@ -93,7 +98,7 @@ class BacktestEngine:
             trade_count=len(trades),
             assumptions=assumptions,
             metrics=metrics,
-            baselines=self._baselines(candles, interval),
+            baselines=self._baselines(candles, normalized_interval),
             trades=tuple(trades),
             equity_curve=tuple(equity_curve),
         )
@@ -202,7 +207,7 @@ class BacktestEngine:
             trade_count += 1
         return equity - 1, trade_count
 
-    def _validate_candles(self, candles: tuple[Candle, ...]) -> None:
+    def _validate_candles(self, candles: tuple[Candle, ...], interval: str) -> None:
         if len(candles) <= self.analysis_window:
             raise BacktestError(
                 "Backtesting requires more candles than the analysis window so at least one "
@@ -213,3 +218,11 @@ class BacktestEngine:
             for first, second in zip(candles, candles[1:], strict=False)
         ):
             raise BacktestError("Candles must be in strictly ascending chronological order")
+        for previous, actual in zip(candles, candles[1:], strict=False):
+            expected = expected_next_timestamp(previous.timestamp, interval)
+            if actual.timestamp != expected:
+                raise BacktestError(
+                    "Candle continuity gap: "
+                    f"actual={actual.timestamp.isoformat()} "
+                    f"expected={expected.isoformat()} interval={interval}"
+                )
