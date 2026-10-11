@@ -14,7 +14,7 @@ class MarketDataClient(Protocol):
     """A public source of normalized, chronological OHLCV data."""
 
     def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
-        """Return up to ``limit`` candles in ascending chronological order."""
+        """Return ``limit`` completed candles oldest-first, or fail if unavailable."""
         ...
 
     def is_valid_symbol(self, symbol: str) -> bool:

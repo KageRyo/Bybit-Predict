@@ -48,7 +48,7 @@ def create_bot(service: PredictionService, settings: DiscordSettings) -> Any:
     @app_commands.describe(
         symbol="Bybit trading symbol, for example BTCUSDT",
         interval="K-line interval, for example 240 for four hours",
-        candles="Number of candles to analyze (42-1000)",
+        candles="Number of completed candles to analyze (42-1000)",
     )
     async def predict(
         interaction: Any,

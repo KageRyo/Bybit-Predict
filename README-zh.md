@@ -12,6 +12,8 @@
 
 [English](README.md)
 
+[CHANGELOG.md](CHANGELOG.md) 的 Unreleased 修正適用於目前原始碼 checkout；PyPI 已發布版本仍為 v4.1.5。
+
 ## Bybit-Predict 是什麼／不是什麼
 
 Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與參考價位。目前的
@@ -25,7 +27,7 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生供參考的市場訊號與�
 
 ## 特色
 
-- 一次 Bybit V5 K-line request 最多可取得 1,000 根 K 線；預設分析用 180 根，取代舊版 180 次獨立 request。
+- 即時分析只使用已收線 K 線：預設 180 根視窗通常只需一頁 K-line request，1,000 根已收線資料可能需要再補一頁較舊資料。
 - 使用 typed、UTC 正規化的 `Candle` 與 immutable `PredictionResult` 資料模型。
 - 無 global state 的 legacy strategy：同時執行多次分析不會混用資料。
 - 提供 CLI，以及可選用、非阻塞的 Discord slash command。
@@ -92,6 +94,8 @@ bybit-predict analyze BTCUSDT
 ```bash
 bybit-predict analyze ETHUSDT --interval 60 --limit 240
 ```
+
+CLI 的 `--limit` 與 Discord 的 `candles` 表示已收線 K 線數量，範圍為 42–1,000 根、預設 180 根。當根未收線資料會被排除，在精確 UTC 收線時間才可納入；分鐘、日線與週線依起始時間推算，月線使用下一個 UTC 曆月月初，而非固定 30 天。跨 request 與 retry 都沿用同一次 UTC 時間快照；最多兩頁 K-line 資料仍不足時，分析會明確回報要求與可用的已收線數量。本輪沒有未收線分析 opt-in；輸出的資料期間仍表示第一根與最後一根分析 K 線的起始時間。
 
 輸出範例：
 

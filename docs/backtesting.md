@@ -89,6 +89,8 @@ expected timestamp, and normalized interval.
 
 ## Execution model
 
+Live CLI analysis and Discord `/predict` also use completed candles by default. The Bybit adapter evaluates each candle's interval end against one timezone-aware UTC snapshot and obtains the requested closed-candle window, or reports insufficient data; it does not pass an active candle to the strategy. This live filter does not change historical date-range retrieval or persisted CSV/manifest contents.
+
 The engine uses a fixed trailing `--window` of closed candles. For each point
 in the evaluation period:
 

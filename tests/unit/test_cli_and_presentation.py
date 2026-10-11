@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -12,6 +13,7 @@ import pytest
 from bybit_predict.backtest import safe_data
 from bybit_predict.backtest.data import save_candles_csv
 from bybit_predict.cli import build_parser, main
+from bybit_predict.market.bybit import BybitV5MarketClient
 from bybit_predict.models import Candle
 from bybit_predict.presentation import format_result_text
 from bybit_predict.services.predictor import PredictionService
@@ -61,6 +63,32 @@ def test_cli_description_matches_the_analysis_and_backtesting_positioning() -> N
     description = build_parser().description
     assert description is not None
     assert "reproducible backtesting" in description
+
+
+def test_cli_analyzes_42_closed_candles(
+    live_market_factory: Callable[[int], BybitV5MarketClient], capsys: pytest.CaptureFixture[str]
+) -> None:
+    status = main(
+        ["analyze", "BTCUSDT", "--limit", "42"],
+        service_factory=lambda: PredictionService(live_market_factory(43)),
+    )
+    assert status == 0
+    output = capsys.readouterr().out
+    assert "Candles: 42" in output
+    assert " -> 2026-10-08T08:00:00+00:00" in output
+
+
+def test_cli_reports_insufficient_closed_candles(
+    live_market_factory: Callable[[int], BybitV5MarketClient], capsys: pytest.CaptureFixture[str]
+) -> None:
+    status = main(
+        ["analyze", "BTCUSDT", "--limit", "42"],
+        service_factory=lambda: PredictionService(live_market_factory(42)),
+    )
+    assert status == 1
+    error = capsys.readouterr().err
+    assert "Analysis failed:" in error
+    assert "requested=42 available=41" in error
 
 
 def test_cli_rejects_limits_the_legacy_strategy_cannot_analyze(capsys: object) -> None:
