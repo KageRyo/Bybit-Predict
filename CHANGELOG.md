@@ -7,11 +7,18 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.1.6] - 2026-10-11
+
 ### Fixed
 
 - Linear-contract short returns now use the entry-notional denominator, matching long returns and correcting strategy equity and the SMA directional baseline; reports declare the model and its inverse-contract limitation (#64).
 - Maximum drawdown now includes starting normalized equity of 1.0, capturing first-trade losses without changing public equity-curve points, other metrics, or trade counts (#65).
 - Live CLI and Discord analysis now use completed candles, with an injectable UTC snapshot, shared calendar-aware interval calculations, and at most one older K-line page to complete the requested window, including 1,000-candle requests (#66).
+
+### Upgrade notes
+
+- Recalculate backtest reports produced by older versions using the same preserved CSV/manifest, analysis window, fees, and slippage to compare corrected short returns and drawdown; keep the original datasets and reports for comparison.
+- CLI `--limit` and Discord `candles` now count completed candles. Active candles are excluded, and insufficient completed history raises an explicit error instead of producing a shorter analysis window.
 
 ## [4.1.5] - 2026-09-16
 

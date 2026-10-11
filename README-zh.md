@@ -5,14 +5,11 @@
 
 **以 Bybit V5 公開市場資料為基礎的規則式加密貨幣市場分析、訊號產生與 Discord 整合工具。**
 
-> **目前正式版本：v4.1.5。**此版本強化 Candle 驗證與 transient API 處理、驗證回測
-> interval continuity 與保存資料 provenance、最佳化 SMA baseline、釐清 metric 語意，
-> 並加強 CI 與 protected-main governance。它承接 v4.1.1 的 PyPI 發行與 v4.1.0 的
-> 可重現歷史回測；前一個 legacy release 為 v3.1。
+> **目前正式版本：v4.1.6。**此版本修正線性合約空單報酬與初始資金回撤，並讓即時 CLI／Discord 分析只使用已收線 K 線。它承接 v4.1.5 的可靠性改進、v4.1.1 的 PyPI 發行與 v4.1.0 的可重現歷史回測；前一個 legacy release 為 v3.1。
 
 [English](README.md)
 
-[CHANGELOG.md](CHANGELOG.md) 的 Unreleased 修正適用於目前原始碼 checkout；PyPI 已發布版本仍為 v4.1.5。
+舊版回測請使用相同的保存 CSV／manifest、分析視窗、fee 與 slippage 重新計算，並保留原報告供比較。詳見 [CHANGELOG.md](CHANGELOG.md) 的 v4.1.6 升級說明。
 
 ## Bybit-Predict 是什麼／不是什麼
 
@@ -278,6 +275,7 @@ GitHub Actions secrets 都不保存長效 PyPI API token。
   GPL-2.0。
 - **v4.1.5：**Candle 與 API robustness、interval 與 dataset replay 驗證、linear SMA
   baseline、明確 metric 語意、強制品質 gate，以及 protected-main governance。
+- **v4.1.6：**修正線性空單報酬與初始資金回撤，並以有限補頁取得已收線 K 線供即時分析（#64–#66）。
 - **後續：**可在同一 strategy contract 下加入更多策略；ML 是未來可能方向，並非現有功能。
 
 ## 貢獻與歷史
