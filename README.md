@@ -6,16 +6,11 @@
 **Rule-based cryptocurrency market analysis, signal generation, and Discord
 integration powered by public Bybit V5 market data.**
 
-> **Current release: v4.1.5.** This release hardens candle validation and
-> transient API handling, validates backtest interval continuity and persisted
-> dataset provenance, optimizes the SMA baseline, clarifies metric semantics,
-> and strengthens CI and protected-main governance. It builds on the PyPI
-> distribution introduced in v4.1.1 and reproducible historical backtesting
-> introduced in v4.1.0; the latest legacy release was v3.1.
+> **Current release: v4.1.6.** This release corrects linear-contract short returns and initial-equity drawdown, and makes live CLI/Discord analysis use completed candles. It builds on the reliability improvements in v4.1.5, PyPI distribution introduced in v4.1.1, and reproducible historical backtesting introduced in v4.1.0; the latest legacy release was v3.1.
 
 [正體中文](README-zh.md)
 
-The fixes listed under Unreleased in [CHANGELOG.md](CHANGELOG.md) apply to the current source checkout; the published PyPI version remains v4.1.5.
+For backtests created with older versions, rerun with the same preserved CSV/manifest, analysis window, fees, and slippage; keep the original reports for comparison. See the v4.1.6 upgrade notes in [CHANGELOG.md](CHANGELOG.md).
 
 ## What Bybit-Predict is — and is not
 
@@ -311,6 +306,7 @@ its GitHub Actions secrets.
 - **v4.1.5:** candle and API robustness, interval and dataset replay
   validation, linear SMA baseline computation, explicit metric semantics,
   enforced quality gates, and protected-main governance.
+- **v4.1.6:** corrected linear short returns and initial-equity drawdown, plus completed-candle live analysis with bounded pagination (#64–#66).
 - **Later:** additional strategies may implement the same strategy contract;
   ML is a future option, not an implied feature.
 
