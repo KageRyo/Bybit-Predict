@@ -14,12 +14,10 @@ from datetime import UTC, datetime
 from typing import Any, Literal, Protocol, cast
 
 from bybit_predict.exceptions import BybitAPIError, MarketDataError
+from bybit_predict.market.intervals import SUPPORTED_INTERVALS, expected_next_timestamp
 from bybit_predict.models import Candle
 
 MarketCategory = Literal["linear", "spot", "inverse"]
-SUPPORTED_INTERVALS = frozenset(
-    {"1", "3", "5", "15", "30", "60", "120", "240", "360", "720", "D", "W", "M"}
-)
 RETRYABLE_API_ERROR_CODES = frozenset({"10000", "10006", "10016"})
 
 
@@ -55,6 +53,7 @@ class BybitV5MarketClient:
         max_retries: int = 3,
         retry_delay_seconds: float = 0.5,
         sleep: Callable[[float], None] = time.sleep,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         if max_retries < 1:
             raise ValueError("max_retries must be at least 1")
@@ -65,28 +64,68 @@ class BybitV5MarketClient:
         self._max_retries = max_retries
         self._retry_delay_seconds = retry_delay_seconds
         self._sleep = sleep
+        self._clock = clock if clock is not None else lambda: datetime.now(UTC)
 
     def get_candles(
         self, symbol: str, interval: str = "240", limit: int = 180
     ) -> tuple[Candle, ...]:
-        """Fetch candles in one V5 request and return them oldest-first."""
+        """Return exactly ``limit`` completed candles using at most two V5 pages."""
         normalized_symbol = self._normalize_symbol(symbol)
         normalized_interval = self._validate_interval(interval)
         if not 1 <= limit <= 1000:
             raise ValueError("Bybit candle limit must be between 1 and 1000")
 
-        response = self._request(
-            self._session.get_kline,
-            category=self._category,
-            symbol=normalized_symbol,
-            interval=normalized_interval,
-            limit=limit,
+        snapshot_now = self._clock()
+        if (
+            snapshot_now.tzinfo is None
+            or snapshot_now.utcoffset() is None
+            or snapshot_now.utcoffset() != UTC.utcoffset(snapshot_now)
+        ):
+            raise MarketDataError("Bybit candle clock must return a timezone-aware UTC datetime")
+        by_timestamp: dict[datetime, Candle] = {}
+        page_end_ms: int | None = None
+        page_limit = min(limit + 1, 1000)
+
+        for _ in range(2):
+            request: dict[str, object] = {
+                "category": self._category,
+                "symbol": normalized_symbol,
+                "interval": normalized_interval,
+                "limit": page_limit,
+            }
+            if page_end_ms is not None:
+                request["end"] = page_end_ms
+            response = self._request(self._session.get_kline, **request)
+            rows = self._result_list(response, endpoint="get_kline")
+            page = tuple(self._to_candle(row) for row in rows)
+            if not page:
+                break
+            oldest_ms = min(int(candle.timestamp.timestamp() * 1000) for candle in page)
+            if page_end_ms is not None and oldest_ms > page_end_ms:
+                break
+            for candle in page:
+                if (
+                    page_end_ms is not None
+                    and int(candle.timestamp.timestamp() * 1000) > page_end_ms
+                ):
+                    continue
+                try:
+                    close_at = expected_next_timestamp(candle.timestamp, normalized_interval)
+                except ValueError as error:
+                    raise MarketDataError(f"Invalid candle close time: {error}") from error
+                if close_at <= snapshot_now:
+                    by_timestamp.setdefault(candle.timestamp, candle)
+            if len(by_timestamp) >= limit:
+                return tuple(sorted(by_timestamp.values(), key=lambda candle: candle.timestamp))[
+                    -limit:
+                ]
+            page_end_ms = oldest_ms - 1
+            page_limit = limit - len(by_timestamp)
+
+        raise MarketDataError(
+            f"Insufficient closed candles for {normalized_symbol} interval={normalized_interval}: "
+            f"requested={limit} available={len(by_timestamp)}"
         )
-        rows = self._result_list(response, endpoint="get_kline")
-        candles = tuple(self._to_candle(row) for row in rows)
-        if not candles:
-            raise MarketDataError(f"Bybit returned no candles for {normalized_symbol}")
-        return tuple(sorted(candles, key=lambda candle: candle.timestamp))
 
     def get_historical_candles(
         self, symbol: str, *, interval: str, start: datetime, end: datetime

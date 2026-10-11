@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from datetime import UTC, datetime
+
 from bybit_predict.exceptions import SymbolNotFoundError
+from bybit_predict.market.bybit import BybitV5MarketClient
 from bybit_predict.models import Candle, SignalTrend
 from bybit_predict.services.predictor import PredictionService
 
@@ -20,6 +24,14 @@ class FakeMarketData:
         assert interval == "240"
         assert limit == 42
         return self.candles
+
+
+def test_prediction_service_receives_42_closed_candles(
+    live_market_factory: Callable[[int], BybitV5MarketClient],
+) -> None:
+    result = PredictionService(live_market_factory(43)).analyze("btcusdt", limit=42)
+    assert result.candle_count == 42
+    assert result.period_end == datetime(2026, 10, 8, 8, tzinfo=UTC)
 
 
 def test_prediction_service_composes_symbol_validation_data_and_strategy(

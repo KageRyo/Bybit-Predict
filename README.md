@@ -15,6 +15,8 @@ integration powered by public Bybit V5 market data.**
 
 [正體中文](README-zh.md)
 
+The fixes listed under Unreleased in [CHANGELOG.md](CHANGELOG.md) apply to the current source checkout; the published PyPI version remains v4.1.5.
+
 ## What Bybit-Predict is — and is not
 
 Bybit-Predict analyzes OHLCV candles from Bybit and produces informational
@@ -32,8 +34,7 @@ outcome.
 
 ## Highlights
 
-- One Bybit V5 K-line request retrieves up to 1,000 candles; the default
-  analysis uses 180 instead of sending 180 individual requests.
+- Live analysis uses completed candles: the default 180-candle window normally needs one K-line page, while 1,000 completed candles may need one additional older page.
 - Typed, UTC-normalized `Candle` and immutable `PredictionResult` models.
 - Stateless legacy strategy: concurrent analyses cannot mix their data.
 - CLI for local use and an optional non-blocking Discord slash command.
@@ -103,6 +104,8 @@ Choose another supported Bybit interval and candle count:
 ```bash
 bybit-predict analyze ETHUSDT --interval 60 --limit 240
 ```
+
+CLI `--limit` and Discord `candles` count completed candles, from 42 to 1,000 (default 180). The active candle is excluded; at its exact UTC interval end it becomes eligible. Minute, daily, and weekly intervals advance from the candle start; monthly candles close at the next UTC calendar month, rather than after a fixed 30 days. A single UTC snapshot is used across requests and retries. If two K-line pages cannot supply the requested window, analysis fails with the requested and available closed counts. There is no open-candle opt-in. The reported data period retains the start timestamps of the first and last analyzed candles.
 
 Example output:
 

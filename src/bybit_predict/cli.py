@@ -50,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--limit",
         type=int,
         default=180,
-        help="Number of candles to fetch, from 42 to 1000 (default: 180)",
+        help="Number of completed candles to analyze, from 42 to 1000 (default: 180)",
     )
     backtest = subcommands.add_parser(
         "backtest", help="Evaluate a strategy on a historical UTC date range"
