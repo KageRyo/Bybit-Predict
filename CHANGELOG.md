@@ -5,6 +5,12 @@ All notable changes to Bybit-Predict are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- Linear-contract short returns now use the entry-notional denominator, matching long returns and correcting strategy equity and the SMA directional baseline; reports declare the model and its inverse-contract limitation (#64).
+
 ## [4.1.5] - 2026-09-16
 
 ### Added

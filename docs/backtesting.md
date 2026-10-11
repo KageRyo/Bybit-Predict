@@ -117,6 +117,8 @@ fills, market impact, order latency, taxes, or unavailable liquidity.
 
 ## Metrics
 
+The execution model represents linear contracts with each trade's return measured against its entry execution notional. After adverse-direction slippage adjusts the entry and exit prices, long gross return is `exit_price / entry_price - 1` and short gross return is `1 - exit_price / entry_price`; net return subtracts the declared `2 * fee_rate`. With zero costs, a short from 100 to 90 returns +10%, and a short from 100 to 110 returns −10%. The strategy and SMA directional baseline use this same model. Inverse-contract PnL and spot borrowing are not modeled; support for fetching those market categories does not change the engine's execution assumptions.
+
 All reported returns are decimal ratios rendered as percentages.
 
 | Metric | Definition |
