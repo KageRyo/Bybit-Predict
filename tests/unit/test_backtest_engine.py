@@ -272,3 +272,70 @@ def test_metric_helpers_cover_drawdown_sharpe_and_interval_scaling() -> None:
     assert annualized_sharpe((0.01, -0.01, 0.02), 365) is not None
     assert periods_per_year("240") == 2190
     assert periods_per_year("D") == 365
+
+
+@pytest.mark.parametrize(
+    ("trend", "close", "cost", "entry", "exit", "gross", "net"),
+    [
+        (SignalTrend.BULLISH, 90, 0, 100, 90, -0.10, -0.10),
+        (SignalTrend.BULLISH, 110, 0, 100, 110, 0.10, 0.10),
+        (SignalTrend.BEARISH, 90, 0, 100, 90, 0.10, 0.10),
+        (SignalTrend.BEARISH, 110, 0, 100, 110, -0.10, -0.10),
+        (SignalTrend.BULLISH, 90, 0.01, 101, 89.1, 89.1 / 101 - 1, -0.1378217821782178),
+        (SignalTrend.BULLISH, 110, 0.01, 101, 108.9, 108.9 / 101 - 1, 0.0582178217821782),
+        (SignalTrend.BEARISH, 90, 0.01, 99, 90.9, 1 - 90.9 / 99, 0.0618181818181818),
+        (SignalTrend.BEARISH, 110, 0.01, 99, 111.1, 1 - 111.1 / 99, -0.1422222222222222),
+    ],
+)
+def test_linear_trade_returns_use_entry_notional(
+    trend: SignalTrend,
+    close: float,
+    cost: float,
+    entry: float,
+    exit: float,
+    gross: float,
+    net: float,
+) -> None:
+    candles = (
+        candle(0, open_price=100, close=100),
+        candle(1, open_price=100, close=100),
+        candle(2, open_price=100, close=close),
+    )
+    result = BacktestEngine(
+        FixedStrategy(trend), analysis_window=2, fee_rate=cost, slippage_rate=cost
+    ).run(candles, symbol="BTCUSDT", interval="240")
+
+    trade = result.trades[0]
+    assert trade.entry_price == pytest.approx(entry)
+    assert trade.exit_price == pytest.approx(exit)
+    assert trade.gross_return == pytest.approx(gross)
+    assert trade.net_return == pytest.approx(net)
+    assert result.metrics.total_return == pytest.approx(net)
+
+
+@pytest.mark.parametrize(("cost", "expected"), [(0, 0.10), (0.01, 0.0618181818181818)])
+def test_bearish_sma_baseline_uses_linear_trade_return(cost: float, expected: float) -> None:
+    warmup = tuple(candle(index, open_price=120 - index, close=120 - index) for index in range(20))
+    candles = (*warmup, candle(20, open_price=100, close=90))
+    result = BacktestEngine(
+        FixedStrategy(SignalTrend.BEARISH),
+        analysis_window=20,
+        fee_rate=cost,
+        slippage_rate=cost,
+    ).run(candles, symbol="BTCUSDT", interval="240")
+
+    sma = next(baseline for baseline in result.baselines if baseline.name == "sma-10-20-direction")
+    assert result.metrics.total_return == pytest.approx(expected)
+    assert sma.total_return == pytest.approx(expected)
+    assert result.trade_count == sma.trade_count == 1
+
+
+def test_backtest_report_declares_linear_return_model() -> None:
+    candles = tuple(candle(index, open_price=100, close=100) for index in range(3))
+    result = BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
+        candles, symbol="BTCUSDT", interval="240"
+    )
+
+    assert "  Return model: linear contract, entry-notional denominator" in (
+        format_backtest_result_text(result)
+    )

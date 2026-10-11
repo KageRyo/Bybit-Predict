@@ -59,6 +59,7 @@ def format_backtest_result_text(result: BacktestResult) -> str:
         f"Trades: {result.trade_count}",
         "",
         "Assumptions:",
+        "  Return model: linear contract, entry-notional denominator",
         f"  Analysis window: {result.assumptions.analysis_window} closed candles",
         f"  Entry: {result.assumptions.entry_rule}",
         f"  Exit: {result.assumptions.exit_rule}",

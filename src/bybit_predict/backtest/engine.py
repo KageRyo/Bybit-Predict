@@ -28,7 +28,10 @@ from bybit_predict.strategies.base import Strategy
 
 @dataclass(frozen=True, slots=True)
 class BacktestEngine:
-    """Evaluate a strategy without allowing a signal to see its execution candle."""
+    """Evaluate linear-contract returns relative to each trade's entry notional.
+
+    Signals cannot see their execution candle. Inverse-contract PnL is not modeled.
+    """
 
     strategy: Strategy
     analysis_window: int = 180
@@ -112,7 +115,7 @@ class BacktestEngine:
         gross_return = (
             exit_price / entry_price - 1
             if trend is SignalTrend.BULLISH
-            else entry_price / exit_price - 1
+            else 1 - exit_price / entry_price
         )
         net_return = gross_return - 2 * self.fee_rate
         return Trade(

@@ -113,6 +113,8 @@ Reference levels:
 
 ### 歷史 Backtest
 
+回測採線性合約模型：多單 gross return 為 `exit / entry - 1`，空單為 `1 - exit / entry`；兩者皆使用滑價調整後的價格，再扣除宣告的每側手續費。策略交易與 SMA 方向 baseline 共用此計算；此模型不支援 inverse 合約 PnL。
+
 v4.1.0 加入可重現的 `backtest` command：策略只會看到先前的固定已收線
 K 線 window；非 neutral 訊號在下一根 K 線開盤模擬進場、同一根收盤模擬出場。輸出會
 連同假設、績效指標和 baseline 一起顯示，不是交易建議。
