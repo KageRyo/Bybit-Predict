@@ -115,6 +115,8 @@ Reference levels:
 
 回測採線性合約模型：多單 gross return 為 `exit / entry - 1`，空單為 `1 - exit / entry`；兩者皆使用滑價調整後的價格，再扣除宣告的每側手續費。策略交易與 SMA 方向 baseline 共用此計算；此模型不支援 inverse 合約 PnL。
 
+最大回撤包含初始 normalized equity 1.0，並以負值或零表示；第一筆跌至 0.8，即使後來回升到 0.9，仍會報告 −20% 回撤。公開 equity curve 維持每根執行 K 線結束後的觀測點。
+
 v4.1.0 加入可重現的 `backtest` command：策略只會看到先前的固定已收線
 K 線 window；非 neutral 訊號在下一根 K 線開盤模擬進場、同一根收盤模擬出場。輸出會
 連同假設、績效指標和 baseline 一起顯示，不是交易建議。

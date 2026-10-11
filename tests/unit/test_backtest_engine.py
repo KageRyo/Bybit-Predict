@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -109,6 +109,8 @@ def test_engine_keeps_neutral_signals_in_cash_and_marks_inapplicable_metrics() -
     assert result.metrics.total_return == 0
     assert result.metrics.maximum_drawdown == 0
     assert result.metrics.sharpe_ratio is None
+    assert len(result.equity_curve) == result.signal_count
+    assert all(point.value == 1.0 for point in result.equity_curve)
 
 
 def test_engine_applies_fee_and_slippage_to_trade_returns() -> None:
@@ -339,3 +341,62 @@ def test_backtest_report_declares_linear_return_model() -> None:
     assert "  Return model: linear contract, entry-notional denominator" in (
         format_backtest_result_text(result)
     )
+
+
+@pytest.mark.parametrize(
+    ("closes", "expected"),
+    [
+        ((80, 106.25, 100 * 0.9 / 0.85), -0.20),
+        ((80, 90), -0.28),
+        ((120, 75), -0.25),
+    ],
+)
+def test_engine_drawdown_includes_initial_equity(
+    closes: tuple[float, ...], expected: float
+) -> None:
+    candles = tuple(
+        candle(index, open_price=100, close=close)
+        for index, close in enumerate((100, 100, *closes))
+    )
+    result = BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
+        candles, symbol="BTCUSDT", interval="240"
+    )
+
+    assert result.metrics.maximum_drawdown == pytest.approx(expected)
+
+
+def test_drawdown_fix_preserves_execution_metrics_and_public_result() -> None:
+    candles = tuple(
+        candle(index, open_price=100, close=close)
+        for index, close in enumerate((100, 100, 80, 106.25, 100 * 0.9 / 0.85))
+    )
+    result = BacktestEngine(FixedStrategy(SignalTrend.BULLISH), analysis_window=2).run(
+        candles, symbol="BTCUSDT", interval="240"
+    )
+
+    assert result.metrics.maximum_drawdown == pytest.approx(-0.20)
+    assert result.trade_count == result.signal_count == 3
+    assert result.metrics.total_return == pytest.approx(-0.10)
+    assert result.metrics.win_rate == pytest.approx(2 / 3)
+    assert result.metrics.directional_accuracy == pytest.approx(1 / 3)
+    assert result.metrics.average_trade_return == pytest.approx(-0.0262254901960784)
+    assert result.metrics.sharpe_ratio == pytest.approx(-8.154485640067675)
+    assert [point.value for point in result.equity_curve] == pytest.approx([0.8, 0.85, 0.9])
+    assert [point.timestamp for point in result.equity_curve] == [
+        execution.timestamp for execution in candles[2:]
+    ]
+    assert set(asdict(result)) == {
+        "symbol",
+        "interval",
+        "strategy",
+        "period_start",
+        "period_end",
+        "candle_count",
+        "signal_count",
+        "trade_count",
+        "assumptions",
+        "metrics",
+        "baselines",
+        "trades",
+        "equity_curve",
+    }
