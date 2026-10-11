@@ -163,7 +163,7 @@ class BacktestEngine:
             win_rate=(fmean(trade.net_return > 0 for trade in trades) if trades else None),
             average_trade_return=(fmean(trade.net_return for trade in trades) if trades else None),
             total_return=(equity_curve[-1].value - 1 if equity_curve else 0.0),
-            maximum_drawdown=maximum_drawdown(tuple(point.value for point in equity_curve)),
+            maximum_drawdown=maximum_drawdown((1.0, *(point.value for point in equity_curve))),
             sharpe_ratio=annualized_sharpe(step_returns, periods_per_year(interval)),
         )
 

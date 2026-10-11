@@ -127,8 +127,10 @@ All reported returns are decimal ratios rendered as percentages.
 | Win rate | Share of simulated trades with a strictly positive net return after declared fees and slippage. |
 | Average trade return | Arithmetic mean of simulated trade net returns. |
 | Strategy total return | Compounded return across every evaluation candle; neutral steps contribute zero return. |
-| Maximum drawdown | Largest peak-to-trough fall in the compounded strategy equity curve. |
+| Maximum drawdown | Largest peak-to-trough fall in compounded strategy equity, including starting normalized capital of 1.0 as the initial peak. The reported ratio is negative or zero. |
 | Annualized Sharpe ratio | Mean per-candle strategy return divided by sample standard deviation, annualized with crypto's 365-day calendar. It is `N/A` when fewer than two returns exist or variation is zero. The risk-free rate is assumed to be zero. |
+
+Maximum drawdown includes the initial 1.0 reference even when the first trade loses money: post-trade equity values `(0.8, 0.85, 0.9)` produce a maximum drawdown of −20%. The public equity curve continues to contain only post-execution points, one per evaluated candle; this initial reference does not add a timestamp, a trade, or a sample to the Sharpe calculation.
 
 Close-to-close directional accuracy deliberately does not compare the signal
 direction with the next candle's open-to-close trade return. An adverse gap at

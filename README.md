@@ -127,6 +127,8 @@ BTCUSDT`.
 
 Backtesting uses a linear-contract model: long gross return is `exit / entry - 1`, short gross return is `1 - exit / entry`, and both use slippage-adjusted prices with the declared per-side fees. Inverse-contract PnL is not modeled. The same calculation applies to strategy trades and the SMA directional baseline.
 
+Maximum drawdown includes starting normalized equity of 1.0 and is reported as a negative or zero return. A first loss to 0.8 followed by recovery to 0.9 therefore still reports −20% drawdown. Public equity-curve points remain post-execution observations.
+
 v4.1.0 adds a reproducible `backtest` command. It signals from a trailing
 closed-candle window, executes non-neutral signals at the next candle open,
 and exits at that candle close. The command prints its assumptions with metrics
