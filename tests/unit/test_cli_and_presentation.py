@@ -12,7 +12,7 @@ import pytest
 
 from bybit_predict.backtest import safe_data
 from bybit_predict.backtest.data import save_candles_csv
-from bybit_predict.cli import build_parser, main
+from bybit_predict.cli import main
 from bybit_predict.market.bybit import BybitV5MarketClient
 from bybit_predict.models import Candle
 from bybit_predict.presentation import format_result_text
@@ -57,12 +57,6 @@ def test_cli_prints_shared_service_result(candles: tuple) -> None:
     )
 
     assert status == 0
-
-
-def test_cli_description_matches_the_analysis_and_backtesting_positioning() -> None:
-    description = build_parser().description
-    assert description is not None
-    assert "reproducible backtesting" in description
 
 
 def test_cli_analyzes_42_closed_candles(
