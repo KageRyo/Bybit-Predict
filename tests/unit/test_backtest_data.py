@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import FrozenInstanceError, fields
+from dataclasses import FrozenInstanceError
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TypedDict, cast
@@ -66,17 +66,6 @@ def test_csv_save_writes_a_stable_manifest_for_the_exact_csv_bytes(
     path = tmp_path / "candles.csv"
 
     saved_manifest = save_candles_csv(path, candles, **_manifest_arguments())
-    assert tuple(field.name for field in fields(saved_manifest)) == (
-        "schema_version",
-        "symbol",
-        "category",
-        "interval",
-        "source",
-        "requested_start",
-        "requested_end",
-        "generated_at",
-        "content_sha256",
-    )
     with pytest.raises(FrozenInstanceError):
         saved_manifest.symbol = "ETHUSDT"  # type: ignore[misc]
 

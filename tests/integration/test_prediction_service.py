@@ -13,6 +13,7 @@ class FakeMarketData:
     def __init__(self, candles: tuple[Candle, ...], *, valid: bool = True) -> None:
         self.candles = candles
         self.valid = valid
+        self.candle_requests = 0
         self.requested_symbol: str | None = None
 
     def is_valid_symbol(self, symbol: str) -> bool:
@@ -20,6 +21,7 @@ class FakeMarketData:
         return self.valid
 
     def get_candles(self, symbol: str, interval: str, limit: int) -> tuple[Candle, ...]:
+        self.candle_requests += 1
         assert symbol == self.requested_symbol
         assert interval == "240"
         assert limit == 42
@@ -53,3 +55,5 @@ def test_prediction_service_does_not_fetch_invalid_symbols(candles: tuple[Candle
         pass
     else:
         raise AssertionError("Expected invalid symbols to raise SymbolNotFoundError")
+
+    assert market.candle_requests == 0
