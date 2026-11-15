@@ -82,7 +82,7 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - PyPI metadata now describes the reproducible backtesting toolkit and includes
   matching discovery keywords.
-- Labelled the Chinese documentation as 正體中文.
+- Labeled the Chinese documentation as 正體中文.
 - CLI help now names both market analysis and reproducible backtesting.
 
 ## [4.1.1] - 2026-08-09

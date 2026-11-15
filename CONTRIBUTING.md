@@ -8,7 +8,7 @@ strategies.
 
 - Read the open [issues](https://github.com/KageRyo/Bybit-Predict/issues) and
   comment before starting a larger change.
-- Small, newcomer-friendly tasks are labelled
+- Small, newcomer-friendly tasks are labeled
   [`good first issue`](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue).
 - Never commit API keys, Discord tokens, `.env` files, or generated market data.
 
@@ -31,20 +31,20 @@ pyright
 pytest
 ```
 
-The test command enforces a total coverage floor of **80%**. The current
-project baseline is approximately 84%, so the initial floor leaves room for
-platform and dependency variation while still preventing a substantial
-regression. Pyright runs in basic mode but treats missing imports as errors;
-dependencies expected by the project are installed by the `.[dev]` extra.
+The test command fails if total coverage drops below **80%**. Coverage is
+currently about 86%, so the floor allows small differences between platforms
+and dependency versions but still catches a large drop. Pyright runs in basic
+mode but treats missing imports as errors; the `.[dev]` extra installs the
+dependencies it expects.
 
 ## Protected main branch
 
 `main` accepts changes only through a pull request. The pull request must pass
 all four required CI jobs: `Python 3.11`, `Python 3.12`, `Python 3.13`, and
 `Build package distribution`. Direct pushes, force pushes, and deletion of
-`main` are blocked. This single-maintainer policy intentionally requires no
-separate approval count, but administrators are not exempt from the protection
-rules and must still use a pull request with the required checks.
+`main` are blocked. Because the project has a single maintainer, no approving
+review is required. Administrators are not exempt: they must also use a pull
+request that passes the required checks.
 
 ## Branches and pull requests
 
@@ -57,8 +57,8 @@ feature/<issue-number>-<short-description>
 For example: `feature/20-bybit-v5-client`.
 
 Keep each PR focused on one issue or one independently reviewable change. Add
-tests for behaviour changes, update both README files when user-facing
-behaviour changes, and explain the checks you ran in the PR description.
+tests for behavior changes, update both README files when user-facing
+behavior changes, and explain the checks you ran in the PR description.
 
 ## Design guidelines
 
@@ -66,10 +66,9 @@ behaviour changes, and explain the checks you ran in the PR description.
 - Keep Bybit access in `market/`; strategies must not import `pybit`.
 - Keep Discord and CLI modules as interfaces only; do not put analysis logic in
   them.
-- Use public Bybit market endpoints without credentials unless an explicitly
-  authenticated feature is added in the future.
+- Use public Bybit market endpoints without credentials.
 - Describe outputs as market-analysis signals or reference levels, never as
-  guaranteed investment advice.
+  investment advice or a guarantee.
 
 ## License and attribution
 

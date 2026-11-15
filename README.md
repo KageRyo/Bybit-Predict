@@ -3,29 +3,26 @@
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml/badge.svg)](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml)
 
-**Rule-based cryptocurrency market analysis, signal generation, and Discord
-integration powered by public Bybit V5 market data.**
+**Rule-based cryptocurrency market analysis and signals from public Bybit V5
+market data, with optional Discord integration.**
 
-> **Current release: v4.1.6.** This release corrects linear-contract short returns and initial-equity drawdown, and makes live CLI/Discord analysis use completed candles. It builds on the reliability improvements in v4.1.5, PyPI distribution introduced in v4.1.1, and reproducible historical backtesting introduced in v4.1.0; the latest legacy release was v3.1.
+> **Current release: v4.1.6.** This release fixes linear-contract short returns, includes starting equity in maximum drawdown, and makes live CLI/Discord analysis use only completed candles. It also includes earlier work: reliability fixes from v4.1.5, PyPI releases since v4.1.1, and reproducible backtesting since v4.1.0. The last legacy release was v3.1.
 
 [正體中文](README-zh.md)
 
-For backtests created with older versions, rerun with the same preserved CSV/manifest, analysis window, fees, and slippage; keep the original reports for comparison. See the v4.1.6 upgrade notes in [CHANGELOG.md](CHANGELOG.md).
+If you made backtests with an older version, rerun them with the same saved CSV/manifest, analysis window, fees, and slippage, and keep the original reports to compare. See the v4.1.6 upgrade notes in [CHANGELOG.md](CHANGELOG.md).
 
 ## What Bybit-Predict is — and is not
 
-Bybit-Predict analyzes OHLCV candles from Bybit and produces informational
-market signals and reference levels. The current `legacy-rule-based-v4`
-strategy uses candle shapes, volume power, percentiles, IQR, and
-Fibonacci-inspired levels.
+Bybit-Predict analyzes OHLCV candles from Bybit and produces market signals and
+reference levels. The current `legacy-rule-based-v4` strategy uses candle
+shapes, volume power, percentiles, IQR, and Fibonacci-inspired levels.
 
 It **does not use a machine-learning model** and it is **not a trading bot**.
-It never places orders, asks for Bybit API credentials, or promises a market
-outcome.
+It never places orders or asks for Bybit API credentials.
 
-> **Risk notice:** Cryptocurrency markets are volatile. Results are
-> informational only, are not financial advice, and must not be treated as a
-> recommendation or guarantee to trade.
+> **Risk notice:** Cryptocurrency markets are volatile. Results are for
+> information only. They are not financial advice or a guarantee of any outcome.
 
 ## Highlights
 
@@ -36,9 +33,8 @@ outcome.
 - Active symbols validated using Bybit instrument metadata, not a hard-coded
   coin list.
 - Tests, Ruff, Pyright, GitHub Actions CI, and Dependabot.
-- Deterministic historical backtesting with saved CSV inputs, validated
-  dataset manifests, explicit assumptions, performance metrics, and two simple
-  baselines.
+- Reproducible historical backtesting with saved CSV inputs, validated dataset
+  manifests, stated assumptions, performance metrics, and two simple baselines.
 
 ## Requirements
 
@@ -100,7 +96,7 @@ Choose another supported Bybit interval and candle count:
 bybit-predict analyze ETHUSDT --interval 60 --limit 240
 ```
 
-CLI `--limit` and Discord `candles` count completed candles, from 42 to 1,000 (default 180). The active candle is excluded; at its exact UTC interval end it becomes eligible. Minute, daily, and weekly intervals advance from the candle start; monthly candles close at the next UTC calendar month, rather than after a fixed 30 days. A single UTC snapshot is used across requests and retries. If two K-line pages cannot supply the requested window, analysis fails with the requested and available closed counts. There is no open-candle opt-in. The reported data period retains the start timestamps of the first and last analyzed candles.
+CLI `--limit` and Discord `candles` count completed candles, from 42 to 1,000 (default 180). The candle that is still open is left out until its UTC close time. For minute, daily, and weekly intervals, the close time is the candle start plus the interval; monthly candles close at the start of the next UTC calendar month, not after a fixed 30 days. All requests and retries in one analysis use the same UTC time. If two K-line pages still do not give enough completed candles, analysis fails and shows how many were requested and how many were available. There is no option to include the open candle. The reported data period still shows the start times of the first and last analyzed candles.
 
 Example output:
 
@@ -125,12 +121,12 @@ BTCUSDT`.
 
 Backtesting uses a linear-contract model: long gross return is `exit / entry - 1`, short gross return is `1 - exit / entry`, and both use slippage-adjusted prices with the declared per-side fees. Inverse-contract PnL is not modeled. The same calculation applies to strategy trades and the SMA directional baseline.
 
-Maximum drawdown includes starting normalized equity of 1.0 and is reported as a negative or zero return. A first loss to 0.8 followed by recovery to 0.9 therefore still reports −20% drawdown. Public equity-curve points remain post-execution observations.
+Maximum drawdown includes starting normalized equity of 1.0 and is reported as a negative or zero return. A first loss to 0.8 followed by recovery to 0.9 therefore still reports −20% drawdown. The equity curve in the results still has one point after each executed candle.
 
-v4.1.0 adds a reproducible `backtest` command. It signals from a trailing
-closed-candle window, executes non-neutral signals at the next candle open,
-and exits at that candle close. The command prints its assumptions with metrics
-and baselines; it does not make a trading claim.
+v4.1.0 adds a reproducible `backtest` command. The strategy sees only a fixed
+window of earlier closed candles. Bullish or bearish signals enter at the next
+candle open and exit at that candle's close. The output lists the assumptions,
+metrics, and baselines.
 
 ```bash
 bybit-predict backtest BTCUSDT \
@@ -205,10 +201,9 @@ Use the slash command in Discord:
 /predict symbol:BTCUSDT interval:240 candles:180
 ```
 
-The command defers external market work to a thread, so a slow Bybit request
-does not block Discord's event loop. Responses include the strategy, trend,
-signal strength, candle period, and neutral **reference levels** rather than
-trading instructions.
+The command runs Bybit requests in a separate thread, so a slow request does
+not block Discord's event loop. Responses include the strategy, trend, signal
+strength, candle period, and neutral **reference levels**.
 
 Never commit `.env`, bot tokens, API keys, or downloaded data. They are
 ignored by default.
@@ -221,8 +216,8 @@ ignored by default.
 | `DISCORD_GUILD_ID` | No | Development guild for immediate command syncing. |
 | `BYBIT_TESTNET` | No | `true` opts into Bybit testnet public data; default is `false`. |
 
-The market-data client intentionally exposes no Bybit credential settings:
-public K-line and instrument endpoints do not require authentication.
+The market-data client has no Bybit credential settings, because public K-line
+and instrument endpoints do not need authentication.
 
 ## Architecture
 
@@ -251,16 +246,16 @@ BybitV5MarketClient ──→ normalized UTC Candles
 
 ## Strategy and evaluation
 
-`LegacyRuleBasedStrategy` is deliberately retained as the project’s historical
-core. It classifies candle bodies and wicks, compares significant bullish and
-bearish volume, and derives optional reference prices from IQR and percentile
-calculations. It is explicitly named so later strategies can be compared
-fairly. v4 intentionally fixes v3's zero/six-candle volume window, timezone
-handling, and bearish Fibonacci label ordering; the exact compatibility
-baseline and retained semantics are documented in
+`LegacyRuleBasedStrategy` keeps the project's original core logic. It
+classifies candle bodies and wicks, compares significant bullish and bearish
+volume, and derives optional reference prices from IQR and percentile
+calculations. It has its own name so later strategies can be compared with it
+fairly. v4 fixes three v3 problems: the zero/six-candle volume window,
+timezone handling, and bearish Fibonacci label order. The compatibility
+baseline and the behavior kept from v3 are documented in
 [legacy strategy migration notes](docs/legacy-strategy-changes.md).
 
-The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating close-to-close directional accuracy, win rate, average return, maximum drawdown, and a zero-risk-rate Sharpe ratio. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](docs/backtesting.md) for the exact rules and limitations. Until published results are independently interpreted in context, this project makes no claim that its signals predict future prices.
+The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating close-to-close directional accuracy, win rate, average return, maximum drawdown, and a Sharpe ratio with a zero risk-free rate. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](docs/backtesting.md) for the exact rules and limitations.
 
 ## Development and quality checks
 
@@ -271,10 +266,9 @@ pyright
 pytest
 ```
 
-`pytest` fails when total coverage falls below the **80%** floor (the current
-baseline is approximately 84%). Pyright remains in basic mode but now treats
-missing imports as errors; the development extra installs the dependencies
-needed by the checks.
+`pytest` fails when total coverage falls below **80%**. Pyright runs in basic
+mode but treats missing imports as errors; the development extra installs the
+dependencies these checks need.
 
 Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for local setup and the required
@@ -301,19 +295,19 @@ its GitHub Actions secrets.
   ([#40](https://github.com/KageRyo/Bybit-Predict/issues/40)).
 - **v4.1.3:** CI dependency maintenance and restoration of the complete GPL v2
   license text.
-- **v4.1.4:** standard GPL v2 distribution license, recognised by GitHub as
+- **v4.1.4:** standard GPL v2 distribution license, recognized by GitHub as
   GPL-2.0.
 - **v4.1.5:** candle and API robustness, interval and dataset replay
-  validation, linear SMA baseline computation, explicit metric semantics,
-  enforced quality gates, and protected-main governance.
+  validation, linear-time SMA baseline computation, explicit metric semantics,
+  enforced quality gates, and main-branch protection.
 - **v4.1.6:** corrected linear short returns and initial-equity drawdown, plus completed-candle live analysis with bounded pagination (#64–#66).
-- **Later:** additional strategies may implement the same strategy contract;
-  ML is a future option, not an implied feature.
+- **Later:** more strategies can implement the same strategy contract; ML is
+  one possible future direction.
 
 ## Contributing and history
 
-The repository name, issues, forks, stars, merged pull requests, and Git
-history are intentionally preserved. Thanks to prior contributors, including
+The repository keeps its original name, issues, forks, stars, merged pull
+requests, and Git history. Thanks to prior contributors, including
 [RRAaru](https://github.com/RRAaru). New contributors are welcome—start with
 [good first issues](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue)
 or read [CONTRIBUTING.md](CONTRIBUTING.md).

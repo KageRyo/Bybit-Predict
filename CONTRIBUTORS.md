@@ -9,5 +9,5 @@ history:
 - RRAaru
 
 Thank you to everyone who has opened issues, reviewed changes, or contributed
-code. This list is intentionally non-exhaustive; the Git history remains the
-authoritative record of code contributions.
+code. This list does not try to name everyone; Git history is the full record
+of code contributions.
