@@ -33,10 +33,11 @@ environment or the PyPI trusted publisher needs to be recreated.
 ## Release procedure
 
 1. Merge a release-preparation PR that sets the package and runtime versions to
-   the immutable final PEP 440 value (for example `4.1.2`) and dates the
-   changelog entry. Confirm main CI is green.
+   the immutable final PEP 440 value (for example `4.1.2`), dates the changelog
+   entry, and updates the compare links at the end of `CHANGELOG.md`. Confirm
+   CI on `main` is green.
 2. Create the annotated release tag (`v<version>`, for example `v4.1.2`) at
-   that verified main commit.
+   that verified `main` commit.
 3. Push the tag. The `release.yml` workflow rejects a tag that is not reachable
    from `main` or whose version differs from `pyproject.toml`. It then builds
    and validates the distributions, waits for approval in the protected

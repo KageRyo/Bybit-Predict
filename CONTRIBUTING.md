@@ -18,7 +18,7 @@ strategies.
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
 uv venv --python 3.11 .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 uv pip install -e ".[dev]"
 ```
 

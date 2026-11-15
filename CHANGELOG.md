@@ -11,9 +11,9 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- Linear-contract short returns now use the entry-notional denominator, matching long returns and correcting strategy equity and the SMA directional baseline; reports declare the model and its inverse-contract limitation (#64).
-- Maximum drawdown now includes starting normalized equity of 1.0, capturing first-trade losses without changing public equity-curve points, other metrics, or trade counts (#65).
-- Live CLI and Discord analysis now use completed candles, with an injectable UTC snapshot, shared calendar-aware interval calculations, and at most one older K-line page to complete the requested window, including 1,000-candle requests (#66).
+- Linear-contract short returns now use the entry-notional denominator, matching long returns and correcting strategy equity and the SMA directional baseline; reports declare the model and its inverse-contract limitation ([#64]).
+- Maximum drawdown now includes starting normalized equity of 1.0, capturing first-trade losses without changing public equity-curve points, other metrics, or trade counts ([#65]).
+- Live CLI and Discord analysis now use completed candles, with an injectable UTC snapshot, shared calendar-aware interval calculations, and at most one older K-line page to complete the requested window, including 1,000-candle requests ([#66]).
 
 ### Upgrade notes
 
@@ -26,27 +26,27 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - Persisted backtest datasets now include a validated CSV sidecar manifest with
   provenance metadata and a content hash, and replay rejects missing,
-  mismatched, malformed, or tampered pairs (#47).
+  mismatched, malformed, or tampered pairs ([#47]).
 - Backtest execution now rejects candle interval gaps before strategy analysis
-  (#48).
+  ([#48]).
 
 ### Changed
 
 - Transient Bybit V5 API errors now use typed, bounded retries while preserving
-  the original response code and message (#49).
+  the original response code and message ([#49]).
 - The 10/20 SMA direction baseline now uses fixed-size rolling windows with
-  linear-time computation and unchanged execution semantics (#51).
+  linear-time computation and unchanged execution semantics ([#51]).
 - Backtest output and documentation identify `directional_accuracy` as
   close-to-close, including the distinction between directional correctness and
-  open-to-close trade profitability across gaps (#52).
+  open-to-close trade profitability across gaps ([#52]).
 - CI enforces an 80% total coverage floor and treats Pyright missing imports as
-  errors; `main` is protected by pull-request and required-check rules (#53,
-  #54).
+  errors; `main` is protected by pull-request and required-check rules ([#53],
+  [#54]).
 
 ### Fixed
 
 - Candle validation now rejects non-finite and non-positive OHLC values and
-  non-finite or negative volume (#50).
+  non-finite or negative volume ([#50]).
 
 ## [4.1.4] - 2026-08-12
 
@@ -127,3 +127,25 @@ project follows [Semantic Versioning](https://semver.org/).
 ## [3.1] - Legacy release
 
 - Latest release before the v4 architecture modernization.
+
+[Unreleased]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.6...HEAD
+[4.1.6]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.5...v4.1.6
+[4.1.5]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.4...v4.1.5
+[4.1.4]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.3...v4.1.4
+[4.1.3]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.2...v4.1.3
+[4.1.2]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.1...v4.1.2
+[4.1.1]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.0...v4.1.1
+[4.1.0]: https://github.com/KageRyo/Bybit-Predict/compare/v4.0.0...v4.1.0
+[4.0.0]: https://github.com/KageRyo/Bybit-Predict/compare/v3.1...v4.0.0
+[3.1]: https://github.com/KageRyo/Bybit-Predict/releases/tag/v3.1
+[#47]: https://github.com/KageRyo/Bybit-Predict/issues/47
+[#48]: https://github.com/KageRyo/Bybit-Predict/issues/48
+[#49]: https://github.com/KageRyo/Bybit-Predict/issues/49
+[#50]: https://github.com/KageRyo/Bybit-Predict/issues/50
+[#51]: https://github.com/KageRyo/Bybit-Predict/issues/51
+[#52]: https://github.com/KageRyo/Bybit-Predict/issues/52
+[#53]: https://github.com/KageRyo/Bybit-Predict/issues/53
+[#54]: https://github.com/KageRyo/Bybit-Predict/issues/54
+[#64]: https://github.com/KageRyo/Bybit-Predict/issues/64
+[#65]: https://github.com/KageRyo/Bybit-Predict/issues/65
+[#66]: https://github.com/KageRyo/Bybit-Predict/issues/66

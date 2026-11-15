@@ -1,6 +1,6 @@
 # Bybit-Predict
 
-[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](LICENSE)
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL--2.0--or--later-blue.svg)](https://github.com/KageRyo/Bybit-Predict/blob/main/LICENSE)
 [![CI](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml/badge.svg)](https://github.com/KageRyo/Bybit-Predict/actions/workflows/ci.yml)
 
 **Rule-based cryptocurrency market analysis and signals from public Bybit V5
@@ -8,9 +8,9 @@ market data, with optional Discord integration.**
 
 > **Current release: v4.1.6.** This release fixes linear-contract short returns, includes starting equity in maximum drawdown, and makes live CLI/Discord analysis use only completed candles. It also includes earlier work: reliability fixes from v4.1.5, PyPI releases since v4.1.1, and reproducible backtesting since v4.1.0. The last legacy release was v3.1.
 
-[正體中文](README-zh.md)
+[正體中文](https://github.com/KageRyo/Bybit-Predict/blob/main/README-zh.md)
 
-If you made backtests with an older version, rerun them with the same saved CSV/manifest, analysis window, fees, and slippage, and keep the original reports to compare. See the v4.1.6 upgrade notes in [CHANGELOG.md](CHANGELOG.md).
+If you made backtests with an older version, rerun them with the same saved CSV/manifest, analysis window, fees, and slippage, and keep the original reports to compare. See the v4.1.6 upgrade notes in [CHANGELOG.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CHANGELOG.md).
 
 ## What Bybit-Predict is — and is not
 
@@ -72,7 +72,7 @@ pipx install bybit-predict
 git clone https://github.com/KageRyo/Bybit-Predict.git
 cd Bybit-Predict
 uv venv --python 3.11 .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 uv pip install .
 ```
 
@@ -119,14 +119,10 @@ BTCUSDT`.
 
 ### Backtest a historical range
 
-Backtesting uses a linear-contract model: long gross return is `exit / entry - 1`, short gross return is `1 - exit / entry`, and both use slippage-adjusted prices with the declared per-side fees. Inverse-contract PnL is not modeled. The same calculation applies to strategy trades and the SMA directional baseline.
-
-Maximum drawdown includes starting normalized equity of 1.0 and is reported as a negative or zero return. A first loss to 0.8 followed by recovery to 0.9 therefore still reports −20% drawdown. The equity curve in the results still has one point after each executed candle.
-
-v4.1.0 adds a reproducible `backtest` command. The strategy sees only a fixed
-window of earlier closed candles. Bullish or bearish signals enter at the next
-candle open and exit at that candle's close. The output lists the assumptions,
-metrics, and baselines.
+`backtest` replays a strategy over a past date range. The strategy sees only a
+fixed window of earlier closed candles. Bullish or bearish signals enter at the
+next candle open and exit at that candle's close. The output lists the
+assumptions, metrics, and two baselines.
 
 ```bash
 bybit-predict backtest BTCUSDT \
@@ -150,25 +146,13 @@ bybit-predict backtest BTCUSDT \
   --data data/btcusdt-2024-4h.csv
 ```
 
-`--start` is inclusive, `--end` is exclusive, and date-only values mean
-midnight UTC. See [backtesting and evaluation](docs/backtesting.md) for metric
-definitions, baseline semantics, manifest validation, reproducibility
-requirements, and important limitations. Saving a CSV also creates the
-required `<csv-name>.manifest.json` sidecar; `--data` rejects missing,
-malformed, mismatched, or tampered CSV/manifest pairs before replay.
-The sidecar contains exactly `schema_version`, `symbol`, `category`, `interval`,
-`source`, `requested_start`, `requested_end`, `generated_at`, and
-`content_sha256` (schema `1`, source `Bybit V5`).
-The report labels the public `directional_accuracy` field as **close-to-close
-directional accuracy**: it compares the signal candle close with the next
-candle close, not the next candle's open-to-close return. An adverse gap can
-therefore make this metric correct while the simulated trade loses money; use
-win rate and return metrics for execution outcomes.
-CLI dataset paths must resolve under the current working directory: the
-documented `data/<file>` form works, while `..` traversal, paths outside that
-root, and symlink components are rejected before a backtest runs.
-The CLI also requires regular CSV and manifest files: existing hard-linked
-outputs and special files such as FIFOs are rejected without blocking.
+`--start` is inclusive, `--end` is exclusive, and times are in UTC. Saving with
+`--save-data` also writes `<csv-name>.manifest.json`; keep it next to the CSV,
+because `--data` checks it before replaying. Dataset paths must be inside the
+current working directory.
+
+See [backtesting and evaluation](https://github.com/KageRyo/Bybit-Predict/blob/main/docs/backtesting.md) for the return model,
+metric definitions, manifest format, path rules, and limitations.
 
 ## Discord slash commands
 
@@ -253,9 +237,9 @@ calculations. It has its own name so later strategies can be compared with it
 fairly. v4 fixes three v3 problems: the zero/six-candle volume window,
 timezone handling, and bearish Fibonacci label order. The compatibility
 baseline and the behavior kept from v3 are documented in
-[legacy strategy migration notes](docs/legacy-strategy-changes.md).
+[legacy strategy migration notes](https://github.com/KageRyo/Bybit-Predict/blob/main/docs/legacy-strategy-changes.md).
 
-The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating close-to-close directional accuracy, win rate, average return, maximum drawdown, and a Sharpe ratio with a zero risk-free rate. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](docs/backtesting.md) for the exact rules and limitations.
+The **v4.1.0** backtesting work ([#25](https://github.com/KageRyo/Bybit-Predict/issues/25)) defines a fixed trailing analysis window, next-open entry, same-candle-close exit, and neutral-as-cash behavior before calculating close-to-close directional accuracy, win rate, average return, maximum drawdown, and a Sharpe ratio with a zero risk-free rate. It compares the result with buy-and-hold and a 10/20 SMA directional baseline. See [backtesting and evaluation](https://github.com/KageRyo/Bybit-Predict/blob/main/docs/backtesting.md) for the exact rules and limitations.
 
 ## Development and quality checks
 
@@ -271,7 +255,7 @@ mode but treats missing imports as errors; the development extra installs the
 dependencies these checks need.
 
 Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for local setup and the required
+[CONTRIBUTING.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CONTRIBUTING.md) for local setup and the required
 `feature/<issue>-<description>` branch convention.
 
 ## Publishing
@@ -279,7 +263,7 @@ Pull requests run these checks on Python 3.11, 3.12, and 3.13. See
 Pushing a final release tag builds an sdist and universal wheel, validates them,
 publishes through PyPI Trusted Publishing, then creates a GitHub Release with
 the same artifacts. See
-[PyPI publishing](docs/pypi-publishing.md) for the maintainer-only setup and
+[PyPI publishing](https://github.com/KageRyo/Bybit-Predict/blob/main/docs/pypi-publishing.md) for the maintainer-only setup and
 release procedure. No long-lived PyPI API token is stored in this repository or
 its GitHub Actions secrets.
 
@@ -300,7 +284,7 @@ its GitHub Actions secrets.
 - **v4.1.5:** candle and API robustness, interval and dataset replay
   validation, linear-time SMA baseline computation, explicit metric semantics,
   enforced quality gates, and main-branch protection.
-- **v4.1.6:** corrected linear short returns and initial-equity drawdown, plus completed-candle live analysis with bounded pagination (#64–#66).
+- **v4.1.6:** corrected linear short returns and initial-equity drawdown, plus completed-candle live analysis with bounded pagination ([#64](https://github.com/KageRyo/Bybit-Predict/issues/64)–[#66](https://github.com/KageRyo/Bybit-Predict/issues/66)).
 - **Later:** more strategies can implement the same strategy contract; ML is
   one possible future direction.
 
@@ -310,13 +294,13 @@ The repository keeps its original name, issues, forks, stars, merged pull
 requests, and Git history. Thanks to prior contributors, including
 [RRAaru](https://github.com/RRAaru). New contributors are welcome—start with
 [good first issues](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue)
-or read [CONTRIBUTING.md](CONTRIBUTING.md).
+or read [CONTRIBUTING.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CONTRIBUTING.md).
 
 ## License and copyright
 
 Bybit-Predict is licensed under the
-[GNU General Public License v2.0 or later](LICENSE).
+[GNU General Public License v2.0 or later](https://github.com/KageRyo/Bybit-Predict/blob/main/LICENSE).
 
 Copyright © 2022–2026 **CodeRyo Studio**, **Chien-Hsun Chang**, and
-[contributors](CONTRIBUTORS.md). CodeRyo Studio is the project maintainer. See
-[NOTICE](NOTICE) for the complete attribution notice.
+[contributors](https://github.com/KageRyo/Bybit-Predict/blob/main/CONTRIBUTORS.md). CodeRyo Studio is the project maintainer. See
+[NOTICE](https://github.com/KageRyo/Bybit-Predict/blob/main/NOTICE) for the complete attribution notice.
