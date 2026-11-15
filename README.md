@@ -6,32 +6,31 @@
 **Rule-based cryptocurrency market analysis and signals from public Bybit V5
 market data, with optional Discord integration.**
 
-> **Current release: v4.1.6.** This release fixes linear-contract short returns, includes starting equity in maximum drawdown, and makes live CLI/Discord analysis use only completed candles. It also includes earlier work: reliability fixes from v4.1.5, PyPI releases since v4.1.1, and reproducible backtesting since v4.1.0. The last legacy release was v3.1.
+> **Current release: v4.1.7.** This documentation release corrects several documentation errors and fixes README links on the PyPI page. The code is the same as v4.1.6, which fixed linear-contract short returns, included starting equity in maximum drawdown, and made live CLI/Discord analysis use only completed candles. The last legacy release was v3.1.
 
 [正體中文](https://github.com/KageRyo/Bybit-Predict/blob/main/README-zh.md)
 
-If you made backtests with an older version, rerun them with the same saved CSV/manifest, analysis window, fees, and slippage, and keep the original reports to compare. See the v4.1.6 upgrade notes in [CHANGELOG.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CHANGELOG.md).
+If you made backtests with a version before v4.1.6, rerun them with the same saved CSV/manifest, analysis window, fees, and slippage, and keep the original reports to compare. See the v4.1.6 upgrade notes in [CHANGELOG.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CHANGELOG.md).
 
-## What Bybit-Predict is — and is not
+## How it works
 
-Bybit-Predict analyzes OHLCV candles from Bybit and produces market signals and
-reference levels. The current `legacy-rule-based-v4` strategy uses candle
-shapes, volume power, percentiles, IQR, and Fibonacci-inspired levels.
+Bybit-Predict reads OHLCV candles from Bybit's public API and uses fixed rules
+to produce market signals and reference levels. The current
+`legacy-rule-based-v4` strategy looks at candle shapes, volume, percentiles,
+and IQR, and uses Fibonacci ratios for the reference levels. It only reads
+public market data and never places orders.
 
-It **does not use a machine-learning model** and it is **not a trading bot**.
-It never places orders or asks for Bybit API credentials.
-
-> **Risk notice:** Cryptocurrency markets are volatile. Results are for
-> information only. They are not financial advice or a guarantee of any outcome.
+> Crypto prices move fast. Treat these signals as reference only, not
+> investment advice.
 
 ## Highlights
 
 - Live analysis uses completed candles: the default 180-candle window normally needs one K-line page, while 1,000 completed candles may need one additional older page.
 - Typed, UTC-normalized `Candle` and immutable `PredictionResult` models.
-- Stateless legacy strategy: concurrent analyses cannot mix their data.
+- Each legacy-strategy analysis runs independently, so you can run several at
+  once.
 - CLI for local use and an optional non-blocking Discord slash command.
-- Active symbols validated using Bybit instrument metadata, not a hard-coded
-  coin list.
+- Symbols are checked against Bybit's instrument metadata.
 - Tests, Ruff, Pyright, GitHub Actions CI, and Dependabot.
 - Reproducible historical backtesting with saved CSV inputs, validated dataset
   manifests, stated assumptions, performance metrics, and two simple baselines.
@@ -40,9 +39,9 @@ It never places orders or asks for Bybit API credentials.
 
 - Python 3.11 or later
 - Internet access to Bybit public market endpoints
+- A Discord bot token, only for the Discord interface
 
-**No Bybit account, API key, or API secret is needed** for public market
-analysis. The optional Discord interface needs only a Discord bot token.
+You do not need a Bybit account or API key.
 
 ## Install
 
@@ -96,7 +95,7 @@ Choose another supported Bybit interval and candle count:
 bybit-predict analyze ETHUSDT --interval 60 --limit 240
 ```
 
-CLI `--limit` and Discord `candles` count completed candles, from 42 to 1,000 (default 180). The candle that is still open is left out until its UTC close time. For minute, daily, and weekly intervals, the close time is the candle start plus the interval; monthly candles close at the start of the next UTC calendar month, not after a fixed 30 days. All requests and retries in one analysis use the same UTC time. If two K-line pages still do not give enough completed candles, analysis fails and shows how many were requested and how many were available. There is no option to include the open candle. The reported data period still shows the start times of the first and last analyzed candles.
+CLI `--limit` and Discord `candles` count completed candles, from 42 to 1,000 (default 180). The candle that is still open is left out until its UTC close time. For minute, daily, and weekly intervals, the close time is the candle start plus the interval; monthly candles close at the start of the next UTC calendar month. All requests and retries in one analysis use the same UTC time. If two K-line pages still do not give enough completed candles, analysis fails and shows how many were requested and how many were available. The reported data period still shows the start times of the first and last analyzed candles.
 
 Example output:
 
@@ -164,8 +163,8 @@ python -m pip install ".[discord]"
 cp .env.example .env
 ```
 
-Set environment variables securely (for example by sourcing `.env` locally or
-using your deployment secret manager):
+Set the environment variables. Locally you can source `.env`; in deployment,
+use your platform's secret manager:
 
 ```bash
 export DISCORD_BOT_TOKEN="your-token"
@@ -187,10 +186,10 @@ Use the slash command in Discord:
 
 The command runs Bybit requests in a separate thread, so a slow request does
 not block Discord's event loop. Responses include the strategy, trend, signal
-strength, candle period, and neutral **reference levels**.
+strength, candle period, and reference levels.
 
-Never commit `.env`, bot tokens, API keys, or downloaded data. They are
-ignored by default.
+`.env` and `data/` are in `.gitignore`, so tokens kept in `.env` and market
+data saved under `data/` stay out of commits.
 
 ## Configuration
 
@@ -199,9 +198,6 @@ ignored by default.
 | `DISCORD_BOT_TOKEN` | Discord only | Discord bot authentication token. |
 | `DISCORD_GUILD_ID` | No | Development guild for immediate command syncing. |
 | `BYBIT_TESTNET` | No | `true` opts into Bybit testnet public data; default is `false`. |
-
-The market-data client has no Bybit credential settings, because public K-line
-and instrument endpoints do not need authentication.
 
 ## Architecture
 
@@ -264,8 +260,7 @@ Pushing a final release tag builds an sdist and universal wheel, validates them,
 publishes through PyPI Trusted Publishing, then creates a GitHub Release with
 the same artifacts. See
 [PyPI publishing](https://github.com/KageRyo/Bybit-Predict/blob/main/docs/pypi-publishing.md) for the maintainer-only setup and
-release procedure. No long-lived PyPI API token is stored in this repository or
-its GitHub Actions secrets.
+release procedure.
 
 ## Release history and roadmap
 
@@ -285,14 +280,14 @@ its GitHub Actions secrets.
   validation, linear-time SMA baseline computation, explicit metric semantics,
   enforced quality gates, and main-branch protection.
 - **v4.1.6:** corrected linear short returns and initial-equity drawdown, plus completed-candle live analysis with bounded pagination ([#64](https://github.com/KageRyo/Bybit-Predict/issues/64)–[#66](https://github.com/KageRyo/Bybit-Predict/issues/66)).
+- **v4.1.7:** documentation corrections, plainer wording, and README links that
+  work on PyPI ([#73](https://github.com/KageRyo/Bybit-Predict/issues/73)).
 - **Later:** more strategies can implement the same strategy contract; ML is
   one possible future direction.
 
 ## Contributing and history
 
-The repository keeps its original name, issues, forks, stars, merged pull
-requests, and Git history. Thanks to prior contributors, including
-[RRAaru](https://github.com/RRAaru). New contributors are welcome—start with
+Thanks to prior contributors, including [RRAaru](https://github.com/RRAaru). New contributors are welcome—start with
 [good first issues](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue)
 or read [CONTRIBUTING.md](https://github.com/KageRyo/Bybit-Predict/blob/main/CONTRIBUTING.md).
 

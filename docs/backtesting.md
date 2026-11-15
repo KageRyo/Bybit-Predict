@@ -1,7 +1,7 @@
 # Backtesting and evaluation
 
 `bybit-predict backtest` measures a deterministic strategy against historical
-OHLCV candles. It is an evaluation tool, not a trading system.
+OHLCV candles.
 
 ## Reproducible inputs
 
@@ -46,7 +46,7 @@ When `--data` is used, the manifest is mandatory. Before filtering candles or
 running the engine, the CLI validates the JSON, schema, source, metadata, the
 normalized symbol/category/interval, the requested half-open UTC range, and
 the CSV content hash. Missing, malformed, unsupported, mismatched, or tampered
-datasets fail with `BacktestError`; there is no legacy CSV-only bypass. Keep
+datasets fail with `BacktestError`. Keep
 the CSV and its sidecar together, along with the replay command, package
 version, and any non-default fee or slippage settings needed to reproduce a
 report.
@@ -112,7 +112,7 @@ evaluated signal.
 `--fee-rate` and `--slippage-rate` are proportional, per-side values and both
 default to zero. Slippage worsens each entry and exit according to direction;
 fees subtract `2 * fee_rate` from every non-neutral gross return. The report
-prints both assumptions. It does **not** model funding, borrow costs,
+prints both assumptions. It does not model funding, borrow costs,
 liquidation, leverage limits, exchange-specific fee tiers, spread, partial
 fills, market impact, order latency, taxes, or unavailable liquidity.
 
@@ -153,7 +153,6 @@ assumptions.
 
 ## Limitations
 
-Past market behavior does not guarantee future behavior. Trying many parameter
-choices can overfit a strategy, even when each run is deterministic. Results
-describe one stated historical simulation; they are not a recommendation to
-trade.
+Trying many parameter choices on the same data can overfit a strategy, even
+when each run is deterministic. Each result describes one historical
+simulation under the assumptions above.

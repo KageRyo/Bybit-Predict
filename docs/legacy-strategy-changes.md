@@ -5,8 +5,8 @@ concepts: candle classification, high-volume power, the 20% dominance
 threshold, IQR-derived price extensions, Fibonacci-inspired reference levels,
 and time references.
 
-Version 4 does not reproduce v3 exactly. The changes below are bug fixes
-covered by regression tests. They make the strategy's output suitable for
+Version 4 changes v3's behavior in the three places below. Each change is a
+bug fix covered by regression tests. They make the strategy's output suitable for
 deterministic evaluation and the reproducible backtesting introduced in v4.1.0.
 
 | Area | v3 behavior | v4 behavior | Reason |
@@ -29,5 +29,5 @@ Regression tests fix the legacy semantics that remain stable:
 - IQR/percentile extension and Fibonacci reference levels; and
 - UTC time-reference calculation.
 
-This explicit baseline lets a future strategy or algorithm change be measured
-against v4, rather than being mistaken for a refactor-only change.
+With this baseline, a future strategy or algorithm change shows up as a
+measurable difference from v4.

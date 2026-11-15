@@ -9,5 +9,4 @@ history:
 - [RRAaru](https://github.com/RRAaru)
 
 Thank you to everyone who has opened issues, reviewed changes, or contributed
-code. This list does not try to name everyone; Git history is the full record
-of code contributions.
+code. Git history has the full record of code contributions.

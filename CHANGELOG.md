@@ -7,6 +7,19 @@ project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.1.7] - 2026-11-15
+
+Documentation-only release; the package code is the same as 4.1.6.
+
+### Fixed
+
+- Corrected inaccurate documentation, including the Sharpe ratio's risk-free-rate wording, the SMA baseline description, a backtest manifest example, and outdated PyPI publishing steps ([#73]).
+- README links now use full GitHub URLs, so they work on the PyPI project page ([#73]).
+
+### Changed
+
+- Rewrote the English and 正體中文 documentation in plainer language, removed repeated disclaimers, and moved backtest details from the READMEs to `docs/backtesting.md` ([#73]).
+
 ## [4.1.6] - 2026-10-11
 
 ### Fixed
@@ -128,7 +141,8 @@ project follows [Semantic Versioning](https://semver.org/).
 
 - Latest release before the v4 architecture modernization.
 
-[Unreleased]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.6...HEAD
+[Unreleased]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.7...HEAD
+[4.1.7]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.6...v4.1.7
 [4.1.6]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.5...v4.1.6
 [4.1.5]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.4...v4.1.5
 [4.1.4]: https://github.com/KageRyo/Bybit-Predict/compare/v4.1.3...v4.1.4
@@ -149,3 +163,4 @@ project follows [Semantic Versioning](https://semver.org/).
 [#64]: https://github.com/KageRyo/Bybit-Predict/issues/64
 [#65]: https://github.com/KageRyo/Bybit-Predict/issues/65
 [#66]: https://github.com/KageRyo/Bybit-Predict/issues/66
+[#73]: https://github.com/KageRyo/Bybit-Predict/issues/73

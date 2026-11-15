@@ -5,27 +5,25 @@
 
 **用 Bybit V5 公開市場資料做規則式加密貨幣市場分析、產生訊號，並可整合 Discord。**
 
-> **目前正式版本：v4.1.6**。這版修正線性合約空單報酬的算法，最大回撤也改為把初始資金算進去，即時 CLI／Discord 分析則改成只用已收線 K 線。同時也包含 v4.1.5 的可靠性改進、v4.1.1 開始的 PyPI 發行，以及 v4.1.0 的可重現歷史回測；最後一個 legacy 版本是 v3.1。
+> **目前正式版本：v4.1.7**。這版只更新文件：修正多處錯誤，並修好 PyPI 頁面上的 README 連結。程式和 v4.1.6 相同；v4.1.6 修正了線性合約空單報酬的算法，最大回撤改為把初始資金算進去，即時 CLI／Discord 分析也改成只用已收線 K 線。最後一個 legacy 版本是 v3.1。
 
 [English](README.md)
 
-用舊版跑出的回測，請用當初保存的 CSV／manifest，搭配相同的分析視窗、手續費與滑價重新計算，並保留原報告比較。詳見 [CHANGELOG.md](CHANGELOG.md) 的 v4.1.6 升級說明。
+用 v4.1.6 之前的版本跑出的回測，請用當初保存的 CSV／manifest，搭配相同的分析視窗、手續費與滑價重新計算，並保留原報告比較。詳見 [CHANGELOG.md](CHANGELOG.md) 的 v4.1.6 升級說明。
 
-## Bybit-Predict 是什麼／不是什麼
+## 運作方式
 
-Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生市場訊號與參考價位。目前的 `legacy-rule-based-v4` 策略使用 K 線型態、量能、百分位數、IQR，以及參考 Fibonacci 比例的價位計算。
+Bybit-Predict 從 Bybit 公開 API 抓 OHLCV K 線，用固定規則算出市場訊號和參考價位。目前的 `legacy-rule-based-v4` 策略會看 K 線型態、量能、百分位數和 IQR，再用 Fibonacci 比例算出參考價位。它只讀公開市場資料，不會下單。
 
-它**不是機器學習模型**，也**不是交易機器人**。它不會下單，也不需要 Bybit API 憑證。
-
-> **風險聲明**：加密貨幣市場波動很大。所有輸出僅供參考，不構成財務建議或獲利保證。
+> 加密貨幣價格波動很大，這裡的訊號只能當參考，不是投資建議。
 
 ## 特色
 
 - 即時分析只用已收線 K 線：預設 180 根通常只要抓一頁資料，要 1,000 根時可能得再往前補抓一頁。
 - `Candle` 有完整型別、時間統一為 UTC；`PredictionResult` 建立後不能修改。
-- legacy 策略不使用全域狀態，同時跑多個分析也不會混到資料。
+- legacy 策略的每次分析各自獨立，可以同時跑好幾個。
 - 提供 CLI，以及可選用、非阻塞的 Discord slash command。
-- 用 Bybit 的 instrument metadata 確認交易對可以交易，不再寫死幣種清單。
+- 輸入的交易對會直接對照 Bybit 的 instrument metadata 檢查。
 - 具備測試、Ruff、Pyright、GitHub Actions CI 與 Dependabot。
 - 可重現的歷史回測：可保存 CSV 輸入資料與經過驗證的 manifest，列出模擬假設、計算績效指標，並和兩個簡單的 baseline 比較。
 
@@ -33,8 +31,9 @@ Bybit-Predict 從 Bybit 取得 OHLCV K 線，產生市場訊號與參考價位�
 
 - Python 3.11 以上
 - 可連線至 Bybit 公開市場 API
+- 用 Discord 介面時，需要 Discord bot token
 
-使用公開市場資料**不需要 Bybit 帳戶、API key 或 API secret**。只有選用 Discord 介面時才需要 Discord bot token。
+不需要 Bybit 帳號或 API key。
 
 ## 安裝
 
@@ -88,7 +87,7 @@ bybit-predict analyze BTCUSDT
 bybit-predict analyze ETHUSDT --interval 60 --limit 240
 ```
 
-CLI 的 `--limit` 與 Discord 的 `candles` 指的是已收線 K 線數量，範圍 42–1,000 根，預設 180 根。還沒收線的那一根不納入，到了它的 UTC 收線時間才算進去。分鐘、日線和週線的收線時間從開盤時間往後推算；月線則在下一個 UTC 曆月的月初收線，不是固定 30 天。同一次分析的所有請求和重試都用同一個 UTC 時間點判斷。最多抓兩頁資料仍不夠時，分析會直接報錯，並列出要求的根數與實際可用的已收線根數。目前沒有選項可以納入未收線 K 線。輸出的資料期間，仍是第一根與最後一根分析 K 線的開盤時間。
+CLI 的 `--limit` 與 Discord 的 `candles` 指的是已收線 K 線數量，範圍 42–1,000 根，預設 180 根。還沒收線的那一根不納入，到了它的 UTC 收線時間才算進去。分鐘、日線和週線的收線時間從開盤時間往後推算；月線則在下一個 UTC 曆月的月初收線。同一次分析的所有請求和重試都用同一個 UTC 時間點判斷。最多抓兩頁資料仍不夠時，分析會直接報錯，並列出要求的根數與實際可用的已收線根數。輸出的資料期間，仍是第一根與最後一根分析 K 線的開盤時間。
 
 輸出範例：
 
@@ -146,7 +145,7 @@ python -m pip install ".[discord]"
 cp .env.example .env
 ```
 
-請以安全方式設定環境變數（例如本機 source `.env` 或在部署平台使用 secret manager）：
+設定環境變數。本機可以 source `.env`，部署時放進平台的 secret manager：
 
 ```bash
 export DISCORD_BOT_TOKEN="your-token"
@@ -166,9 +165,9 @@ bybit-predict discord
 /predict symbol:BTCUSDT interval:240 candles:180
 ```
 
-指令會在另一個 thread 向 Bybit 抓資料，所以 Bybit 回應慢也不會卡住 Discord 的 event loop。回覆內容包含策略名稱、趨勢、訊號強度、分析的 K 線期間，以及中性的**參考價位**。
+指令會在另一個 thread 向 Bybit 抓資料，所以 Bybit 回應慢也不會卡住 Discord 的 event loop。回覆內容包含策略名稱、趨勢、訊號強度、分析的 K 線期間，以及參考價位。
 
-請勿 commit `.env`、bot token、API key 或下載的市場資料；它們都已在 `.gitignore` 中排除。
+`.env` 和 `data/` 已經寫進 `.gitignore`，token 放在 `.env`、市場資料存在 `data/`，就不會被 commit。
 
 ## 設定
 
@@ -177,8 +176,6 @@ bybit-predict discord
 | `DISCORD_BOT_TOKEN` | 僅 Discord | Discord bot authentication token。 |
 | `DISCORD_GUILD_ID` | 否 | 開發用的 guild，設定後指令會立即同步。 |
 | `BYBIT_TESTNET` | 否 | 設為 `true` 時使用 Bybit testnet 公開資料；預設 `false`。 |
-
-市場資料 client 沒有 Bybit 憑證設定，因為公開的 K 線與 instrument endpoint 不需要驗證。
 
 ## 架構
 
@@ -224,7 +221,7 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱 [CONTRIBUTI
 
 ## 發布
 
-推送正式版 tag 後，workflow 會建立 sdist 與 universal wheel、先驗證這些檔案、透過 PyPI Trusted Publishing 發布，最後建立附上同一批檔案的 GitHub Release。一次性設定與發布流程請見 [PyPI 發布說明](docs/pypi-publishing.md)（英文，給維護者）；repo 和 GitHub Actions secrets 都沒有存放長效的 PyPI API token。
+推送正式版 tag 後，workflow 會建立 sdist 與 universal wheel、先驗證這些檔案、透過 PyPI Trusted Publishing 發布，最後建立附上同一批檔案的 GitHub Release。一次性設定與發布流程請見 [PyPI 發布說明](docs/pypi-publishing.md)（英文，給維護者）。
 
 ## 發行歷史與規劃
 
@@ -236,11 +233,12 @@ PR 會在 Python 3.11、3.12 與 3.13 執行上述檢查。請參閱 [CONTRIBUTI
 - **v4.1.4**：所有 distribution 使用標準 GPL v2 授權條文，並由 GitHub 辨識為 GPL-2.0。
 - **v4.1.5**：加強 Candle 與 API 的穩定性、驗證 interval 與 dataset 重跑、SMA baseline 改為線性時間計算、明確定義指標語意、強制品質檢查，以及 `main` 分支保護規則。
 - **v4.1.6**：修正線性合約空單報酬，最大回撤改計入初始資金；即時分析改用已收線 K 線，資料不夠時最多再補抓一頁（[#64](https://github.com/KageRyo/Bybit-Predict/issues/64)–[#66](https://github.com/KageRyo/Bybit-Predict/issues/66)）。
+- **v4.1.7**：修正文件錯誤、改寫成更白話的說明，並讓 README 連結在 PyPI 上也能用（[#73](https://github.com/KageRyo/Bybit-Predict/issues/73)）。
 - **後續**：可在同一 strategy contract 下加入更多策略；ML 是未來可能的方向。
 
 ## 貢獻與歷史
 
-這個專案保留了原本的 repo 名稱、issues、forks、stars、已合併的 PR 與 Git 歷史。感謝先前貢獻者，包括 [RRAaru](https://github.com/RRAaru)。歡迎新 contributor 從標有 [good first issue](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue) 的 issue 開始，或閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)。
+感謝先前貢獻者，包括 [RRAaru](https://github.com/RRAaru)。歡迎新 contributor 從標有 [good first issue](https://github.com/KageRyo/Bybit-Predict/labels/good%20first%20issue) 的 issue 開始，或閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## License 與著作權
 
