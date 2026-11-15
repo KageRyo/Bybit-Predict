@@ -14,4 +14,4 @@
 - [ ] Branch follows `feature/<issue>-<description>`.
 - [ ] No credentials, `.env` files, or generated market data were committed.
 - [ ] English and 正體中文 documentation are aligned when relevant.
-- [ ] Outputs remain clearly labelled as informational, not financial advice.
+- [ ] Outputs remain clearly labeled as informational, not financial advice.

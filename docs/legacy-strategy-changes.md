@@ -3,12 +3,11 @@
 `LegacyRuleBasedStrategy` preserves Bybit-Predict's original rule-based
 concepts: candle classification, high-volume power, the 20% dominance
 threshold, IQR-derived price extensions, Fibonacci-inspired reference levels,
-and time references. It is not an ML model.
+and time references.
 
-Version 4 is not a byte-for-byte replay of the v3 implementation. The changes
-below are intentional, documented bug fixes and are covered by regression
-tests. They make the strategy's output suitable for deterministic evaluation
-and the reproducible backtesting introduced in v4.1.0.
+Version 4 does not reproduce v3 exactly. The changes below are bug fixes
+covered by regression tests. They make the strategy's output suitable for
+deterministic evaluation and the reproducible backtesting introduced in v4.1.0.
 
 | Area | v3 behavior | v4 behavior | Reason |
 | --- | --- | --- | --- |
@@ -20,7 +19,7 @@ and the reproducible backtesting introduced in v4.1.0.
 
 `LegacyRuleBasedStrategy.v3_volume_window()` is a migration-only helper that
 reproduces v3's zero/six-candle window calculation. The production
-`analyze()` method deliberately never calls it.
+`analyze()` method never calls it.
 
 Regression tests fix the legacy semantics that remain stable:
 

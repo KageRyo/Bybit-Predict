@@ -1,8 +1,7 @@
 # Backtesting and evaluation
 
 `bybit-predict backtest` measures a deterministic strategy against historical
-OHLCV candles. It is an evaluation tool, not a trading system and not evidence
-that a strategy will remain profitable.
+OHLCV candles. It is an evaluation tool, not a trading system.
 
 ## Reproducible inputs
 
@@ -37,7 +36,7 @@ bybit-predict backtest BTCUSDT \
 
 The CSV is headered and normalized as `timestamp,open,high,low,close,volume`.
 Saving it also writes the required sidecar `<csv-name>.manifest.json`, for
-example `btc-2024-4h.csv.manifest.json`. The sidecar is stable sorted-key JSON
+example `btcusdt-2024-4h.csv.manifest.json`. The sidecar is stable sorted-key JSON
 with exactly these fields: `schema_version`, `symbol`, `category`, `interval`,
 `source`, `requested_start`, `requested_end`, `generated_at`, and
 `content_sha256`. It uses schema `1`, source `Bybit V5`, canonical UTC ISO-8601
@@ -89,7 +88,7 @@ expected timestamp, and normalized interval.
 
 ## Execution model
 
-Live CLI analysis and Discord `/predict` also use completed candles by default. The Bybit adapter evaluates each candle's interval end against one timezone-aware UTC snapshot and obtains the requested closed-candle window, or reports insufficient data; it does not pass an active candle to the strategy. This live filter does not change historical date-range retrieval or persisted CSV/manifest contents.
+Live CLI analysis and Discord `/predict` use only completed candles. The Bybit adapter checks each candle's close time against one timezone-aware UTC timestamp. It then returns the requested number of closed candles or reports that there is not enough data; it never passes an open candle to the strategy. This filter does not change historical date-range downloads or saved CSV/manifest files.
 
 The engine uses a fixed trailing `--window` of closed candles. For each point
 in the evaluation period:
@@ -134,7 +133,7 @@ All reported returns are decimal ratios rendered as percentages.
 
 Maximum drawdown includes the initial 1.0 reference even when the first trade loses money: post-trade equity values `(0.8, 0.85, 0.9)` produce a maximum drawdown of −20%. The public equity curve continues to contain only post-execution points, one per evaluated candle; this initial reference does not add a timestamp, a trade, or a sample to the Sharpe calculation.
 
-Close-to-close directional accuracy deliberately does not compare the signal
+Close-to-close directional accuracy does not compare the signal
 direction with the next candle's open-to-close trade return. An adverse gap at
 the next open can therefore produce a directionally correct close-to-close
 prediction while the simulated trade still loses money; use win rate and the
@@ -148,15 +147,13 @@ The engine also reports two baselines over the same execution period:
   above the 20-candle average, short when it is below, and use the same
   next-open-to-close execution model.
 
-Baselines make a result comparable; they are not benchmarks of investment
-suitability. Do not compare runs that use different symbols, timeframes,
-datasets, windows, costs, or execution assumptions as if they were equivalent.
+Baselines give the result something to compare against. Only compare runs that
+use the same symbol, timeframe, dataset, window, costs, and execution
+assumptions.
 
 ## Limitations
 
-Historical market data is not a guarantee of future market behavior. A strategy
-can be overfit through repeated parameter selection even when every single run
-is deterministic. The legacy rule-based strategy was created as market
-analysis, not as a validated portfolio construction system. Treat results as
-engineering evidence about a precisely stated historical simulation, not as a
-recommendation to trade.
+Past market behavior does not guarantee future behavior. Trying many parameter
+choices can overfit a strategy, even when each run is deterministic. Results
+describe one stated historical simulation; they are not a recommendation to
+trade.
