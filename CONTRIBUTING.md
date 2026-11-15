@@ -43,8 +43,7 @@ dependencies it expects.
 all four required CI jobs: `Python 3.11`, `Python 3.12`, `Python 3.13`, and
 `Build package distribution`. Direct pushes, force pushes, and deletion of
 `main` are blocked. Because the project has a single maintainer, no approving
-review is required. Administrators are not exempt: they must also use a pull
-request that passes the required checks.
+review is required. These rules apply to administrators too.
 
 ## Branches and pull requests
 
@@ -64,11 +63,9 @@ behavior changes, and explain the checks you ran in the PR description.
 
 - Keep strategies deterministic: candles in, immutable result out.
 - Keep Bybit access in `market/`; strategies must not import `pybit`.
-- Keep Discord and CLI modules as interfaces only; do not put analysis logic in
-  them.
+- Keep Discord and CLI modules as interfaces only.
 - Use public Bybit market endpoints without credentials.
-- Describe outputs as market-analysis signals or reference levels, never as
-  investment advice or a guarantee.
+- Describe outputs as market-analysis signals or reference levels.
 
 ## License and attribution
 
